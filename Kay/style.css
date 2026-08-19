@@ -1,0 +1,825 @@
+:root {
+    /* KAY Logo Colors (Exact Palette) */
+    --color-primary: #72213B; /* Vino Profundo */
+    --color-secondary: #B64888; /* Magenta */
+    --color-accent: #2E728B; /* Azul Petróleo */
+    --color-accent-2: #689AA3; /* Verde Azulado */
+    --color-accent-3: #B76B2C; /* Terracota */
+    --color-accent-4: #D89135; /* Mostaza */
+    
+    --color-bg-light: #fdfbf7; /* Fondo cálido muy claro */
+    --color-bg-circle: #f2e8e3; /* Fondo secundario cálido */
+    --color-white: #ffffff;
+    --color-dark: #3a1421; /* Texto oscuro basado en el Vino */
+    --color-gray: #e8e1dd;
+
+    /* Tipografías */
+    --font-body: 'TAN NIMBUS', 'Questrial', sans-serif;
+    --font-heading: 'TAN NIMBUS', 'Archivo', sans-serif;
+
+    /* Variables de diseño */
+    --border-radius: 20px;
+    --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    --transition: all 0.3s ease;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-body);
+    color: var(--color-dark);
+    background-color: var(--color-bg-light);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+/* Typography */
+h1, h2, h3, h4 {
+    font-family: var(--font-heading);
+    font-weight: 700;
+}
+
+.logo {
+    font-family: 'Shrikhand', cursive;
+    font-weight: normal;
+    font-size: 2.2rem;
+    color: #791c3d; /* Burgundy color similar to the image */
+    letter-spacing: 2px;
+}
+
+/* Header */
+.header {
+    background-color: var(--color-white);
+    padding: 1rem 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo-image {
+    height: 80px;
+    width: auto;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+.logo-image:hover {
+    transform: scale(1.05);
+}
+
+
+.nav a {
+    text-decoration: none;
+    color: var(--color-dark);
+    margin: 0 1rem;
+    font-size: 1.1rem;
+    position: relative;
+    transition: var(--transition);
+}
+
+.nav a::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -4px;
+    left: 0;
+    background-color: var(--color-primary);
+    transition: var(--transition);
+}
+
+.nav a:hover::after {
+    width: 100%;
+}
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.social-icon {
+    color: var(--color-dark);
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+}
+
+.social-icon:hover {
+    color: var(--color-primary);
+    transform: scale(1.1);
+}
+
+.cart-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    color: var(--color-dark);
+    transition: var(--transition);
+}
+
+.cart-btn:hover {
+    color: var(--color-primary);
+}
+
+.cart-btn span {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    padding: 0.1rem 0.5rem;
+    border-radius: 50%;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+/* Hero Section */
+.hero {
+    background: linear-gradient(135deg, var(--color-bg-circle) 0%, var(--color-bg-light) 100%);
+    padding: 6rem 2rem;
+    text-align: center;
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hero-content {
+    max-width: 800px;
+}
+
+.hero h1 {
+    font-size: 4rem;
+    color: var(--color-primary);
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    line-height: 1.1;
+    animation: fadeInUp 0.8s ease;
+}
+
+.hero p {
+    font-size: 1.2rem;
+    color: var(--color-dark);
+    margin-bottom: 2rem;
+    animation: fadeInUp 1s ease;
+}
+
+.cta-button {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    border: none;
+    padding: 1rem 2.5rem;
+    font-size: 1.1rem;
+    border-radius: 40px;
+    font-family: var(--font-body);
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(118, 32, 60, 0.4);
+    transition: var(--transition);
+    text-transform: uppercase;
+    font-weight: bold;
+    animation: fadeInUp 1.2s ease;
+}
+
+.cta-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(118, 32, 60, 0.6);
+    background-color: var(--color-secondary);
+}
+
+/* Collection Section */
+.collection {
+    padding: 5rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.collection-title {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 3rem;
+    color: var(--color-dark);
+}
+
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+}
+
+.product-card {
+    background: var(--color-white);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(114, 33, 59, 0.05);
+    transition: var(--transition);
+    border: 1px solid rgba(114, 33, 59, 0.1);
+}
+
+.product-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 30px rgba(114, 33, 59, 0.15);
+}
+
+/* Automatic Slideshow Styles */
+.slideshow-section {
+    padding: 60px 20px;
+    background-color: var(--color-bg-light);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.slideshow-title {
+    font-size: 2rem;
+    color: var(--color-dark);
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+.slideshow-container {
+    width: 100%;
+    max-width: 1200px;
+    height: 400px;
+    overflow: hidden;
+    position: relative;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    background: #fff;
+    padding: 20px 0;
+}
+
+.slideshow-track {
+    display: flex;
+    width: max-content;
+    height: 100%;
+    align-items: center;
+    animation: scrollSlides 25s linear infinite;
+}
+
+.slideshow-track:hover {
+    animation-play-state: paused;
+}
+
+.slideshow-track img {
+    height: 360px;
+    width: 360px;
+    object-fit: cover;
+    flex-shrink: 0;
+    margin: 0 15px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s;
+}
+
+.slideshow-track img:hover {
+    transform: scale(1.03);
+}
+
+@keyframes scrollSlides {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(calc(-360px * 5 - 30px * 5)); }
+}
+
+
+
+.product-info h3 {
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+}
+
+.price {
+    font-size: 1.2rem;
+    color: var(--color-primary);
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.qty-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.item-qty {
+    width: 60px;
+    padding: 0.5rem;
+    border: 1px solid var(--color-gray);
+    border-radius: var(--border-radius);
+    text-align: center;
+    font-family: var(--font-body);
+    font-size: 1rem;
+}
+
+.add-to-cart {
+    background-color: var(--color-accent); /* Azul Petróleo */
+    border: none;
+    color: var(--color-white);
+    padding: 0.8rem 1.5rem;
+    border-radius: 40px;
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: var(--transition);
+    width: 100%;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.add-to-cart:hover {
+    background-color: var(--color-secondary); /* Magenta */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(182, 72, 136, 0.4);
+}
+
+/* Footer */
+.footer {
+    background-color: var(--color-gray);
+    padding: 3rem 2rem;
+    text-align: center;
+    margin-top: 4rem;
+    color: var(--color-dark);
+}
+
+.footer .logo {
+    color: var(--color-dark);
+    margin-bottom: 1rem;
+}
+
+.footer .social-icon {
+    color: var(--color-dark);
+}
+
+.footer .social-icon:hover {
+    color: var(--color-primary);
+}
+
+.footer-social {
+    margin: 1.5rem 0;
+    display: flex;
+    justify-content: center;
+}
+
+.footer p {
+    color: #666;
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+    .header-container {
+        flex-direction: column;
+        gap: 15px;
+    }
+    .nav {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+    }
+    .nav a {
+        margin: 0 0.5rem;
+        font-size: 1rem;
+    }
+    .header-actions {
+        width: 100%;
+        justify-content: center;
+        margin-top: 10px;
+    }
+    
+    .hero h1 {
+        font-size: 2.5rem;
+    }
+    
+    .collection {
+        padding: 3rem 1.5rem;
+    }
+}
+
+/* Modales */
+.modal {
+    display: none; 
+    position: fixed; 
+    z-index: 1000; 
+    left: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    overflow: auto; 
+    background-color: rgba(0,0,0,0.5); 
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background-color: var(--color-bg-circle);
+    margin: 10% auto; 
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    position: relative;
+    animation: fadeInUp 0.4s ease;
+}
+
+.close-modal {
+    color: var(--color-dark);
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-modal:hover {
+    color: var(--color-primary);
+}
+
+/* Cart & Modals Styling (Brand Aligned) */
+.cart-items {
+    margin: 1.5rem 0;
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--color-gray);
+    padding: 1rem 0;
+}
+
+.cart-item-title {
+    font-weight: bold;
+    color: var(--color-dark);
+}
+
+.qty-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.qty-btn {
+    background-color: transparent;
+    border: 1px solid var(--color-accent-4); /* Mostaza */
+    color: var(--color-accent-4);
+    width: 28px;
+    height: 28px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.qty-btn:hover {
+    background-color: var(--color-accent-4);
+    color: var(--color-white);
+}
+
+.remove-item-btn {
+    background: none;
+    border: none;
+    color: var(--color-secondary); /* Magenta */
+    cursor: pointer;
+    font-size: 0.85rem;
+    margin-left: 10px;
+    font-weight: bold;
+    transition: var(--transition);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.remove-item-btn:hover {
+    color: var(--color-primary); /* Vino Profundo */
+}
+
+.empty-cart-msg {
+    text-align: center;
+    color: var(--color-accent-2); /* Verde azulado */
+    font-style: italic;
+    margin: 2rem 0;
+}
+
+.cart-footer {
+    border-top: 2px solid var(--color-primary);
+    padding-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.checkout-btn {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    border: none;
+    padding: 1rem;
+    width: 100%;
+    font-size: 1.2rem;
+    border-radius: 40px;
+    cursor: pointer;
+    transition: var(--transition);
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.checkout-btn:hover:not(:disabled) {
+    background-color: var(--color-secondary);
+    box-shadow: 0 4px 12px rgba(182, 72, 136, 0.4);
+}
+
+.checkout-btn:disabled {
+    background-color: var(--color-gray);
+    color: #888;
+    cursor: not-allowed;
+}
+
+.clear-cart-btn {
+    background-color: transparent;
+    border: 2px solid var(--color-secondary);
+    color: var(--color-secondary);
+    padding: 0.8rem;
+    width: 100%;
+    border-radius: 40px;
+    font-size: 1rem;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+    transition: var(--transition);
+}
+
+.clear-cart-btn:hover {
+    background-color: var(--color-secondary);
+    color: var(--color-white);
+}
+
+.item-qty {
+    border: 2px solid var(--color-gray);
+    color: var(--color-dark);
+    transition: var(--transition);
+}
+
+.item-qty:focus {
+    border-color: var(--color-accent);
+    outline: none;
+}
+
+/* WhatsApp Floating Button */
+.whatsapp-float {
+    position: fixed;
+    width: 60px;
+    height: 60px;
+    bottom: 40px;
+    right: 40px;
+    background-color: #25d366;
+    color: #FFF;
+    border-radius: 50px;
+    text-align: center;
+    font-size: 30px;
+    box-shadow: 2px 2px 3px #999;
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.3s ease;
+}
+
+.whatsapp-float:hover {
+    transform: scale(1.1);
+}
+
+/* --- Nosotros Page Styles --- */
+.about-page {
+    padding-top: 80px;
+    background-color: var(--color-bg-light);
+    color: var(--color-dark);
+}
+
+.about-hero {
+    padding: 60px 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.about-container {
+    max-width: 900px;
+    text-align: center;
+}
+
+.about-title {
+    font-size: 3.5rem;
+    color: var(--color-primary);
+    margin-bottom: 2rem;
+}
+
+.about-content p {
+    font-size: 1.15rem;
+    line-height: 1.8;
+    margin-bottom: 1.5rem;
+    text-align: justify;
+}
+
+.concept-building {
+    padding: 60px 20px 100px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.concept-title {
+    text-align: center;
+    font-size: 3rem;
+    color: var(--color-primary);
+    margin-bottom: 4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.dot-accent {
+    color: var(--color-accent-4);
+    font-size: 2rem;
+}
+
+.concept-grid-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 40px;
+    margin-bottom: 60px;
+    position: relative;
+}
+
+.concept-item {
+    flex: 1;
+}
+
+.row-layout {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.col-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.center-text {
+    text-align: center;
+}
+
+.concept-heading {
+    color: var(--color-accent-4);
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+
+.concept-text h4 {
+    font-size: 1.2rem;
+    margin-bottom: 5px;
+    color: var(--color-dark);
+}
+
+.concept-text p, .center-text p {
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--color-dark);
+}
+
+.concept-img {
+    object-fit: contain;
+}
+
+.retablo-img {
+    height: 180px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.corazon-img {
+    height: 120px;
+}
+
+.ornamento-img {
+    height: 60px;
+    margin: 10px 0;
+}
+
+@media (max-width: 768px) {
+    .concept-grid-top {
+        flex-direction: column;
+        gap: 60px;
+    }
+    .row-layout {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+/* --- Contact Section --- */
+.contact-section {
+    background-color: var(--color-bg-circle);
+    padding: 4rem 2rem;
+    text-align: center;
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+
+.contact-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.contact-container h2 {
+    color: var(--color-primary);
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.contact-container p {
+    color: var(--color-dark);
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+}
+
+.contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    justify-content: center;
+    align-items: stretch;
+}
+
+.contact-form input, .contact-form textarea {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    border-radius: 15px;
+    border: 2px solid var(--color-gray);
+    font-size: 1rem;
+    font-family: var(--font-body);
+    outline: none;
+    transition: var(--transition);
+    background-color: var(--color-white);
+}
+
+.contact-form input:focus, .contact-form textarea:focus {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 10px rgba(46, 114, 139, 0.2);
+}
+
+.contact-form button {
+    align-self: center;
+    width: 100%;
+    max-width: 300px;
+    margin-top: 10px;
+}
+
+.form-msg {
+    margin-top: 15px !important;
+    font-size: 0.95rem !important;
+    font-weight: bold;
+    min-height: 20px;
+}
+
+.msg-error {
+    color: #d93838 !important;
+}
+
+.msg-success {
+    color: #2e8b57 !important;
+}
