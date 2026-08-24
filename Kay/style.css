@@ -875,7 +875,7 @@ h1, h2, h3, h4 {
     position: fixed;
     top: 25px;
     right: 25px;
-    background-color: var(--color-white);
+    background-color: var(--color-bg-light); /* Fondo crema claro de la marca */
     border-left: 6px solid var(--color-primary);
     box-shadow: 0 10px 30px rgba(114, 33, 59, 0.15);
     border-radius: 12px;
@@ -888,7 +888,7 @@ h1, h2, h3, h4 {
     transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     max-width: 400px;
     font-family: var(--font-body);
-    border: 1px solid rgba(114, 33, 59, 0.1);
+    border: 1px solid rgba(114, 33, 59, 0.15);
 }
 
 .custom-toast.show {
@@ -899,12 +899,24 @@ h1, h2, h3, h4 {
     border-left-color: var(--color-primary); /* Vino Profundo */
 }
 
+.custom-toast.toast-error .custom-toast-message {
+    color: var(--color-primary); /* Texto Vino Profundo */
+}
+
 .custom-toast.toast-success {
-    border-left-color: #25d366; /* Verde WhatsApp */
+    border-left-color: var(--color-accent-2); /* Verde Azulado */
+}
+
+.custom-toast.toast-success .custom-toast-message {
+    color: var(--color-accent); /* Texto Azul Petróleo */
 }
 
 .custom-toast.toast-warning {
     border-left-color: var(--color-accent-4); /* Mostaza */
+}
+
+.custom-toast.toast-warning .custom-toast-message {
+    color: var(--color-accent-3); /* Texto Terracota */
 }
 
 .custom-toast-icon {
@@ -917,7 +929,6 @@ h1, h2, h3, h4 {
 
 .custom-toast-message {
     font-size: 0.95rem;
-    color: var(--color-dark);
     font-weight: bold;
     line-height: 1.4;
 }
