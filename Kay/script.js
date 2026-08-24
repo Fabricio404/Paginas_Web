@@ -14,6 +14,42 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn('El script de Supabase no se cargó correctamente.');
     }
 
+    // --- Notificaciones Toast Personalizadas ---
+    function showToast(message, type = 'error') {
+        const existingToast = document.querySelector('.custom-toast');
+        if (existingToast) {
+            existingToast.remove();
+        }
+
+        const toast = document.createElement('div');
+        toast.className = `custom-toast toast-${type}`;
+        
+        let icon = '⚠️';
+        if (type === 'success') icon = '✅';
+        if (type === 'error') icon = '❌';
+        
+        toast.innerHTML = `
+            <div class="custom-toast-icon">${icon}</div>
+            <div class="custom-toast-message">${message}</div>
+            <button class="custom-toast-close">&times;</button>
+        `;
+
+        document.body.appendChild(toast);
+
+        setTimeout(() => toast.classList.add('show'), 50);
+
+        const autoClose = setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 400);
+        }, 4000);
+
+        toast.querySelector('.custom-toast-close').addEventListener('click', () => {
+            clearTimeout(autoClose);
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 400);
+        });
+    }
+
     // --- Variables de Estado del Carrito ---
     let cart = [];
     const cartCountElement = document.getElementById('cartCount');
@@ -122,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const currentQty = existingItem ? existingItem.qty : 0;
 
             if (currentQty + qty > availableStock) {
-                alert(`Lo sentimos, no hay suficiente stock. Disponible: ${availableStock}. Ya tienes ${currentQty} en tu cesta.`);
+                showToast(`Lo sentimos, no hay suficiente stock. Disponible: ${availableStock}. Ya tienes ${currentQty} en tu cesta.`, 'error');
                 return;
             }
 
@@ -215,7 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         saveCart();
                         updateCartUI();
                     } else {
-                        alert(`No hay más stock disponible (${availableStock} unidades máximo).`);
+                        showToast(`No hay más stock disponible (${availableStock} unidades máximo).`, 'warning');
                     }
                 });
             });
@@ -288,7 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (rpcErr) throw rpcErr;
 
                     if (res && res.success === false) {
-                        alert(res.message || 'Lo sentimos, no hay stock suficiente para completar el pedido.');
+                        showToast(res.message || 'Lo sentimos, no hay stock suficiente para completar el pedido.', 'error');
                         submitOrderBtn.disabled = false;
                         submitOrderBtn.textContent = 'Enviar Pedido';
                         // Refrescar el stock en la pantalla con los datos actualizados
@@ -297,7 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 } catch (err) {
                     console.error('Error al procesar el pedido en Supabase:', err);
-                    alert('Hubo un problema al validar el stock en el servidor. Por favor intenta de nuevo.');
+                    showToast('Hubo un problema al validar el stock en el servidor. Por favor intenta de nuevo.', 'error');
                     submitOrderBtn.disabled = false;
                     submitOrderBtn.textContent = 'Enviar Pedido';
                     return;
