@@ -1,16 +1,30 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+    // --- CONFIGURACIÓN DE SUPABASE ---
+    // Reemplaza estas credenciales con las de tu proyecto de Supabase
+    const SUPABASE_URL = 'https://tzsbxnlygxuzjmxafvez.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_vr1hMYlWgzT2lkpfLzT3cg_zOqTNeQb';
+
+    let supabase = null;
+    let productStocks = {}; // Almacena { "Nombre del Producto": stock_disponible }
+
+    if (typeof window.supabase !== 'undefined') {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } else {
+        console.warn('El script de Supabase no se cargó correctamente.');
+    }
+
     // --- Variables de Estado del Carrito ---
     let cart = [];
     const cartCountElement = document.getElementById('cartCount');
     const cartBtn = document.getElementById('cartBtn');
-    
+
     const cartModal = document.getElementById('cartModal');
     const closeCartModal = document.getElementById('closeCartModal');
     const cartItemsContainer = document.getElementById('cartItemsContainer');
     const checkoutBtn = document.getElementById('checkoutBtn');
     const clearCartBtn = document.getElementById('clearCartBtn');
-    
+
     const orderModal = document.getElementById('orderModal');
     const closeOrderModal = document.getElementById('closeOrderModal');
     const orderForm = document.getElementById('orderForm');
@@ -29,17 +43,89 @@ document.addEventListener('DOMContentLoaded', () => {
         cart = [];
     }
     updateCartUI();
+    fetchAndRenderStocks(); // Carga el stock en tiempo real
+
+    // --- Funciones para manejar el Stock con Supabase ---
+    async function fetchAndRenderStocks() {
+        if (!supabase) return;
+        try {
+            const { data, error } = await supabase
+                .from('products')
+                .select('name, stock');
+
+            if (error) throw error;
+
+            if (data) {
+                data.forEach(p => {
+                    productStocks[p.name] = p.stock;
+                });
+                updateProductGridStocks();
+            }
+        } catch (err) {
+            console.error('Error al cargar stock desde Supabase:', err.message);
+        }
+    }
+
+    function updateProductGridStocks() {
+        document.querySelectorAll('.stock-count').forEach(el => {
+            const productName = el.getAttribute('data-product');
+            const stock = productStocks[productName] !== undefined ? productStocks[productName] : 0;
+            el.textContent = stock;
+
+            const card = el.closest('.product-card');
+            const indicator = el.closest('.stock-indicator');
+            const btn = card ? card.querySelector('.add-to-cart') : null;
+            const qtyInput = card ? card.querySelector('.item-qty') : null;
+
+            if (qtyInput) {
+                qtyInput.max = stock;
+            }
+
+            if (indicator) {
+                indicator.classList.remove('low-stock', 'out-of-stock');
+                if (stock === 0) {
+                    indicator.classList.add('out-of-stock');
+                    el.parentElement.innerHTML = '<strong>Agotado</strong>';
+                } else if (stock <= 5) {
+                    indicator.classList.add('low-stock');
+                }
+            }
+
+            if (stock === 0) {
+                if (card) card.classList.add('agotado');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.textContent = 'Agotado';
+                }
+            } else {
+                if (card) card.classList.remove('agotado');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = 'Pedir';
+                }
+            }
+        });
+    }
 
     // --- Lógica del Carrito ---
     const addToCartBtns = document.querySelectorAll('.add-to-cart');
-    
+
     addToCartBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function () {
             const productName = this.getAttribute('data-product');
             const qtyInput = this.parentElement.querySelector('.item-qty');
             const qty = qtyInput ? parseInt(qtyInput.value) || 1 : 1;
-            
+
+            // Validar stock disponible localmente antes de añadir
+            const availableStock = productStocks[productName] !== undefined ? productStocks[productName] : 0;
             const existingItem = cart.find(item => item.name === productName);
+            const currentQty = existingItem ? existingItem.qty : 0;
+
+            if (currentQty + qty > availableStock) {
+                alert(`Lo sentimos, no hay suficiente stock. Disponible: ${availableStock}. Ya tienes ${currentQty} en tu cesta.`);
+                return;
+            }
+
             if (existingItem) {
                 existingItem.qty += qty;
             } else {
@@ -47,14 +133,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             saveCart();
             updateCartUI();
-            
+
             // Animación visual del botón
             const originalText = this.textContent;
             this.textContent = '¡Añadido!';
             this.style.backgroundColor = 'var(--color-secondary)'; // Magenta for success
             this.style.color = 'white';
-            
-            if(cartBtn) {
+
+            if (cartBtn) {
                 cartBtn.style.transform = 'scale(1.2)';
                 setTimeout(() => cartBtn.style.transform = 'scale(1)', 200);
             }
@@ -73,24 +159,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateCartUI() {
-        if(!cartCountElement) return;
+        if (!cartCountElement) return;
 
         const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
         cartCountElement.textContent = totalItems;
 
-        if(!cartItemsContainer) return;
+        if (!cartItemsContainer) return;
 
         cartItemsContainer.innerHTML = '';
 
         if (cart.length === 0) {
             cartItemsContainer.innerHTML = '<p class="empty-cart-msg">Tu cesta está vacía.</p>';
-            if(checkoutBtn) checkoutBtn.disabled = true;
-            if(clearCartBtn) clearCartBtn.style.display = 'none';
+            if (checkoutBtn) checkoutBtn.disabled = true;
+            if (clearCartBtn) clearCartBtn.style.display = 'none';
         } else {
             cart.forEach((item, index) => {
                 const itemEl = document.createElement('div');
                 itemEl.className = 'cart-item';
-                
+
                 itemEl.innerHTML = `
                     <div class="cart-item-title">${item.name}</div>
                     <div class="qty-controls">
@@ -102,14 +188,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
                 cartItemsContainer.appendChild(itemEl);
             });
-            if(checkoutBtn) checkoutBtn.disabled = false;
-            if(clearCartBtn) clearCartBtn.style.display = 'block';
+            if (checkoutBtn) checkoutBtn.disabled = false;
+            if (clearCartBtn) clearCartBtn.style.display = 'block';
 
             // Event Listeners para botones de la cesta
             document.querySelectorAll('.qty-btn.minus').forEach(btn => {
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', function () {
                     const idx = this.getAttribute('data-index');
-                    if(cart[idx].qty > 1) {
+                    if (cart[idx].qty > 1) {
                         cart[idx].qty -= 1;
                     } else {
                         cart.splice(idx, 1);
@@ -118,18 +204,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     updateCartUI();
                 });
             });
-            
+
             document.querySelectorAll('.qty-btn.plus').forEach(btn => {
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', function () {
                     const idx = this.getAttribute('data-index');
-                    if(cart[idx].qty < 80) cart[idx].qty += 1;
-                    saveCart();
-                    updateCartUI();
+                    const item = cart[idx];
+                    const availableStock = productStocks[item.name] !== undefined ? productStocks[item.name] : 80;
+                    if (item.qty < availableStock) {
+                        item.qty += 1;
+                        saveCart();
+                        updateCartUI();
+                    } else {
+                        alert(`No hay más stock disponible (${availableStock} unidades máximo).`);
+                    }
                 });
             });
 
             document.querySelectorAll('.remove-item').forEach(btn => {
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', function () {
                     const idx = this.getAttribute('data-index');
                     cart.splice(idx, 1);
                     saveCart();
@@ -146,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closeCartModal && cartModal) {
         closeCartModal.addEventListener('click', () => cartModal.style.display = 'none');
     }
-    
+
     if (clearCartBtn) {
         clearCartBtn.addEventListener('click', () => {
             cart = [];
@@ -159,7 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
         checkoutBtn.addEventListener('click', () => {
             cartModal.style.display = 'none';
             orderModal.style.display = 'block';
-            if(orderStatusMsg) orderStatusMsg.textContent = '';
+            if (orderStatusMsg) orderStatusMsg.textContent = '';
         });
     }
 
@@ -172,24 +264,50 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target === orderModal) orderModal.style.display = 'none';
     });
 
-    // --- Enviar Pedido vía WhatsApp (CallMeBot) ---
+    // --- Enviar Pedido vía WhatsApp e integrar stock ---
     if (orderForm) {
-        orderForm.addEventListener('submit', (e) => {
+        orderForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             const name = document.getElementById('orderName').value.trim();
             const phone = document.getElementById('orderPhone').value.trim();
-            
-            if(!name || !phone || cart.length === 0) return;
+
+            if (!name || !phone || cart.length === 0) return;
 
             submitOrderBtn.disabled = true;
-            submitOrderBtn.textContent = 'Enviando...';
+            submitOrderBtn.textContent = 'Procesando stock...';
+
+            // --- Actualización de stock en Supabase de forma segura ---
+            let productListStr = '';
+
+            if (supabase) {
+                try {
+                    // Invoca la función almacenada segura (RPC) en el servidor
+                    const { data: res, error: rpcErr } = await supabase.rpc('process_order', { items: cart });
+
+                    if (rpcErr) throw rpcErr;
+
+                    if (res && res.success === false) {
+                        alert(res.message || 'Lo sentimos, no hay stock suficiente para completar el pedido.');
+                        submitOrderBtn.disabled = false;
+                        submitOrderBtn.textContent = 'Enviar Pedido';
+                        // Refrescar el stock en la pantalla con los datos actualizados
+                        fetchAndRenderStocks();
+                        return;
+                    }
+                } catch (err) {
+                    console.error('Error al procesar el pedido en Supabase:', err);
+                    alert('Hubo un problema al validar el stock en el servidor. Por favor intenta de nuevo.');
+                    submitOrderBtn.disabled = false;
+                    submitOrderBtn.textContent = 'Enviar Pedido';
+                    return;
+                }
+            }
 
             // Generar número de pedido aleatorio (ej. #4921)
             const orderNumber = Math.floor(1000 + Math.random() * 9000);
 
             // Formatear lista de productos
-            let productListStr = '';
             cart.forEach(item => {
                 productListStr += `- ${item.qty}x ${item.name}\n`;
             });
@@ -204,7 +322,7 @@ document.addEventListener('DOMContentLoaded', () => {
             orderStatusMsg.className = 'form-msg msg-success';
             orderStatusMsg.style.color = '#25d366';
             orderStatusMsg.style.fontWeight = 'bold';
-            
+
             setTimeout(() => {
                 submitOrderBtn.disabled = false;
                 submitOrderBtn.textContent = 'Enviar Pedido';
@@ -212,6 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 cart = [];
                 saveCart();
                 updateCartUI();
+                fetchAndRenderStocks(); // Refrescar los stocks en pantalla
                 orderModal.style.display = 'none';
             }, 2000);
         });
@@ -228,21 +347,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const email = emailInput.value.trim();
             const name = document.getElementById('nameInput').value.trim();
             const msg = document.getElementById('messageInput').value.trim();
-            
+
             const validDomainsRegex = /^[a-zA-Z0-9._%+-]+@(gmail\.com|outlook\.com|hotmail\.com|yahoo\.com|live\.com|icloud\.com)$/i;
-            
-            contactMsg.className = 'form-msg'; 
-            
+
+            contactMsg.className = 'form-msg';
+
             if (!validDomainsRegex.test(email)) {
                 contactMsg.textContent = '❌ Por favor, ingresa un correo válido (@gmail, @hotmail, @outlook, etc.)';
                 contactMsg.classList.add('msg-error');
             } else {
                 const botMessage = `NUEVO MENSAJE DE CONTACTO\nNombre: ${name}\nCorreo: ${email}\nMensaje: ${msg}`;
                 const url = `https://wa.me/000000000?text=${encodeURIComponent(botMessage)}`;
-                
+
                 // Abrir WhatsApp
                 window.open(url, '_blank');
-                
+
                 contactMsg.textContent = '✅ Abriendo WhatsApp para enviar tu mensaje...';
                 contactMsg.classList.add('msg-success');
                 contactForm.reset();

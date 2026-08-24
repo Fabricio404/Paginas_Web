@@ -306,6 +306,52 @@ h1, h2, h3, h4 {
     margin-bottom: 0.5rem;
 }
 
+.stock-indicator {
+    font-size: 0.95rem;
+    color: var(--color-accent-3); /* Terracota */
+    font-weight: bold;
+    margin-bottom: 0.8rem;
+}
+
+.stock-indicator.low-stock {
+    color: #cc3300;
+    font-weight: bold;
+}
+
+.stock-indicator.out-of-stock {
+    color: #7a7a7a;
+    font-weight: bold;
+}
+
+.product-card.agotado {
+    opacity: 0.75;
+    position: relative;
+}
+
+.product-card.agotado::after {
+    content: 'AGOTADO';
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background-color: var(--color-primary);
+    color: white;
+    padding: 5px 12px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    border-radius: 8px;
+    letter-spacing: 1px;
+}
+
+.product-card.agotado .add-to-cart {
+    background-color: #888888 !important;
+    cursor: not-allowed;
+}
+
+.product-card.agotado .qty-controls {
+    display: none !important;
+}
+
+
 .price {
     font-size: 1.2rem;
     color: var(--color-primary);
