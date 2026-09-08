@@ -296,14 +296,19 @@ document.addEventListener('DOMContentLoaded', () => {
         checkoutBtn.addEventListener('click', () => {
             cartModal.style.display = 'none';
             if (mockStripeModal) {
-                mockStripeModal.style.display = 'block';
-                // Calculate mock total (assuming all prices are simple, for demo we just show a static or simple calculated total)
-                let total = cart.reduce((sum, item) => sum + (item.qty * 15), 0); // Assuming 15 PEN/USD per item for demo
-                if (stripeTotalAmount) stripeTotalAmount.textContent = 'S/ ' + total.toFixed(2);
-                if (stripeStatusMsg) {
-                    stripeStatusMsg.textContent = '';
-                    stripeStatusMsg.className = 'form-msg';
-                }
+                // Simulación de Reserva de Stock (Supabase Pendiente)
+                showToast('Sistema: Creando pedido PENDIENTE en base de datos y reservando stock...', 'success');
+                
+                setTimeout(() => {
+                    mockStripeModal.style.display = 'block';
+                    // Calculate mock total (assuming all prices are simple, for demo we just show a static or simple calculated total)
+                    let total = cart.reduce((sum, item) => sum + (item.qty * 15), 0); // Assuming 15 PEN/USD per item for demo
+                    if (stripeTotalAmount) stripeTotalAmount.textContent = 'S/ ' + total.toFixed(2);
+                    if (stripeStatusMsg) {
+                        stripeStatusMsg.textContent = '';
+                        stripeStatusMsg.className = 'form-msg';
+                    }
+                }, 1500); // Pequeño delay simulando llamada a la API
             } else if (orderModal) {
                 orderModal.style.display = 'block';
                 if (orderStatusMsg) orderStatusMsg.textContent = '';
@@ -316,13 +321,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (closeStripeModal && mockStripeModal) {
-        closeStripeModal.addEventListener('click', () => mockStripeModal.style.display = 'none');
+        closeStripeModal.addEventListener('click', () => {
+            mockStripeModal.style.display = 'none';
+            // Simulación de liberación de stock al cancelar
+            showToast('Sistema: Pago cancelado o expirado. Liberando stock reservado en Supabase...', 'error');
+        });
     }
 
     window.addEventListener('click', (e) => {
         if (e.target === cartModal) cartModal.style.display = 'none';
         if (e.target === orderModal) orderModal.style.display = 'none';
-        if (e.target === mockStripeModal) mockStripeModal.style.display = 'none';
+        if (e.target === mockStripeModal) {
+            mockStripeModal.style.display = 'none';
+            // Simulación de liberación de stock al clickear fuera (cancelar)
+            showToast('Sistema: Pago cancelado o expirado. Liberando stock reservado en Supabase...', 'error');
+        }
     });
 
     // --- Demo Mock Stripe Payment ---
