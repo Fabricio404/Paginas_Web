@@ -6,6 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KAY | Postres Peruanos Especiales</title>
     
+    <!-- Meta SEO -->
+    <meta name="description" content="KAY: Descubre los mejores postres peruanos especiales y artesanales. Haz que cada momento cuente con nuestra cuidada selección de dulces.">
+    <meta name="keywords" content="postres peruanos, postres especiales, dulces artesanales, KAY postres, tarta de fresa, dulce de leche, Lima, Perú">
+    <meta name="author" content="KAY">
+    <link rel="canonical" href="https://tusitio.com/">
+
+    <!-- Open Graph / Redes Sociales -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://tusitio.com/">
+    <meta property="og:title" content="KAY | Postres Peruanos Especiales">
+    <meta property="og:description" content="Haz que cada momento cuente con nuestros postres seleccionados y artesanales.">
+    <meta property="og:image" content="https://tusitio.com/IMG_5175.PNG">
+    
     <!-- Preconnects for performance -->
     <link rel="preconnect" href="https://wa.me">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,6 +31,19 @@
         rel="stylesheet">
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Schema Markup (LocalBusiness) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Bakery",
+      "name": "KAY Postres Peruanos",
+      "image": "https://tusitio.com/IMG_5175.PNG",
+      "description": "Postres peruanos especiales y artesanales. Haz que cada momento cuente.",
+      "url": "https://tusitio.com",
+      "priceRange": "$$"
+    }
+    </script>
 </head>
 
 <body>
@@ -55,7 +81,8 @@
     <main>
         <section class="hero">
             <div class="hero-content">
-                <h1>MAKE IT SPECIAL</h1>
+                <h1 style="position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0;">KAY: Postres Peruanos Especiales</h1>
+                <h2 class="hero-subtitle">MAKE IT SPECIAL</h2>
                 <p>Haz que cada momento cuente con nuestros productos seleccionados.</p>
                 <a href="catalogo.html" class="cta-button" style="text-decoration: none; display: inline-block; text-align: center;">Ver Colección</a>
             </div>
@@ -65,7 +92,7 @@
             <div class="product-grid">
 
                 <article class="product-card">
-                    <img src="edited_1.png" alt="Tarta de Fresa" class="product-image" loading="lazy" decoding="async">
+                    <img src="edited_1.png" alt="Tarta de Fresa Artesanal KAY - Postre Peruano Especial" class="product-image" loading="lazy" decoding="async">
                     <div class="product-info">
                         <h3>Tarta de Fresa</h3>
                         <p class="stock-indicator">Quedan: <span class="stock-count" data-product="Tarta de Fresa">Cargando...</span></p>
@@ -78,7 +105,7 @@
                 </article>
 
                 <article class="product-card">
-                    <img src="edited_2.png" alt="Dulce de Leche" class="product-image" loading="lazy" decoding="async">
+                    <img src="edited_2.png" alt="Dulce de Leche Artesanal KAY - Postre Tradicional Peruano" class="product-image" loading="lazy" decoding="async">
                     <div class="product-info">
                         <h3>Dulce de Leche</h3>
                         <p class="stock-indicator">Quedan: <span class="stock-count" data-product="Dulce de Leche">Cargando...</span></p>
@@ -91,7 +118,7 @@
                 </article>
 
                 <article class="product-card">
-                    <img src="edited_3.png" alt="Postre de Limón" class="product-image" loading="lazy" decoding="async">
+                    <img src="edited_3.png" alt="Postre de Limón KAY - Delicia Cítrica Especial" class="product-image" loading="lazy" decoding="async">
                     <div class="product-info">
                         <h3>Postre de Limón</h3>
                         <p class="stock-indicator">Quedan: <span class="stock-count" data-product="Postre de Limón">Cargando...</span></p>
@@ -104,7 +131,7 @@
                 </article>
 
                 <article class="product-card">
-                    <img src="edited_4.png" alt="Decoración Especial" class="product-image" loading="lazy" decoding="async">
+                    <img src="edited_4.png" alt="Postre con Decoración Especial KAY" class="product-image" loading="lazy" decoding="async">
                     <div class="product-info">
                         <h3>Decoración Especial</h3>
                         <p class="stock-indicator">Quedan: <span class="stock-count" data-product="Decoración Especial">Cargando...</span></p>
@@ -117,7 +144,7 @@
                 </article>
 
                 <article class="product-card">
-                    <img src="edited_5.png" alt="Postre Tradicional" class="product-image" loading="lazy" decoding="async">
+                    <img src="edited_5.png" alt="Postre Tradicional Peruano KAY" class="product-image" loading="lazy" decoding="async">
                     <div class="product-info">
                         <h3>Postre Tradicional</h3>
                         <p class="stock-indicator">Quedan: <span class="stock-count" data-product="Postre Tradicional">Cargando...</span></p>
@@ -152,10 +179,10 @@
     </footer>
 
     <!-- Cart Modal -->
-    <div id="cartModal" class="modal">
+    <div id="cartModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="cartModalTitle">
         <div class="modal-content">
-            <span class="close-modal" id="closeCartModal">&times;</span>
-            <h2>Tu Cesta</h2>
+            <button class="close-modal" id="closeCartModal" aria-label="Cerrar carrito">&times;</button>
+            <h2 id="cartModalTitle">Tu Cesta</h2>
             <div id="cartItemsContainer" class="cart-items">
                 <p class="empty-cart-msg">Tu cesta está vacía.</p>
             </div>
@@ -166,11 +193,11 @@
         </div>
     </div>
 
-    <!-- Order Modal -->
-    <div id="orderModal" class="modal">
+    <!-- Order Modal (Oculto temporalmente en la Demo) -->
+    <div id="orderModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="orderModalTitle">
         <div class="modal-content">
-            <span class="close-modal" id="closeOrderModal">&times;</span>
-            <h2>Datos de Envío</h2>
+            <button class="close-modal" id="closeOrderModal" aria-label="Cerrar ventana de envío">&times;</button>
+            <h2 id="orderModalTitle">Datos de Envío</h2>
             <p>Por favor, déjanos tus datos para enviarle la lista al jefe por WhatsApp.</p>
             <form id="orderForm" class="contact-form" style="margin-top: 15px;">
                 <input type="text" id="orderName" placeholder="Tu nombre completo" required>
@@ -178,6 +205,49 @@
                 <button type="submit" class="cta-button" id="submitOrderBtn">Enviar Pedido</button>
             </form>
             <p id="orderStatusMsg" class="form-msg"></p>
+        </div>
+    </div>
+
+    <!-- Stripe Mock Modal -->
+    <div id="mockStripeModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="stripeModalTitle">
+        <div class="modal-content stripe-modal-content">
+            <button class="close-modal" id="closeStripeModal" aria-label="Cancelar pago">&times;</button>
+            <div class="stripe-header">
+                <h2 id="stripeModalTitle">Pasarela de Pago Segura</h2>
+                <p class="stripe-subtitle">Simulación de integración con Stripe</p>
+            </div>
+            
+            <div class="stripe-order-summary">
+                <p>Total a pagar:</p>
+                <h3 id="stripeTotalAmount">Calculando...</h3>
+            </div>
+
+            <form id="stripeMockForm" class="stripe-form">
+                <div class="stripe-input-group">
+                    <label>Correo Electrónico</label>
+                    <input type="email" placeholder="cliente@ejemplo.com" required class="stripe-input">
+                </div>
+                <div class="stripe-input-group">
+                    <label>Información de la Tarjeta</label>
+                    <div class="stripe-card-element">
+                        <input type="text" placeholder="0000 0000 0000 0000" maxlength="19" required class="stripe-input card-number">
+                        <div class="stripe-card-details">
+                            <input type="text" placeholder="MM / AA" maxlength="7" required class="stripe-input">
+                            <input type="text" placeholder="CVC" maxlength="3" required class="stripe-input">
+                        </div>
+                    </div>
+                </div>
+                <div class="stripe-input-group">
+                    <label>Nombre en la Tarjeta</label>
+                    <input type="text" placeholder="Tu nombre completo" required class="stripe-input">
+                </div>
+                
+                <button type="submit" class="stripe-btn" id="simulatePaymentBtn">
+                    <span id="stripeBtnText">Pagar (Demo)</span>
+                    <span id="stripeSpinner" class="stripe-spinner" style="display: none;"></span>
+                </button>
+            </form>
+            <p id="stripeStatusMsg" class="form-msg"></p>
         </div>
     </div>
 

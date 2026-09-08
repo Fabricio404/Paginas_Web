@@ -67,6 +67,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const submitOrderBtn = document.getElementById('submitOrderBtn');
     const orderStatusMsg = document.getElementById('orderStatusMsg');
 
+    const mockStripeModal = document.getElementById('mockStripeModal');
+    const closeStripeModal = document.getElementById('closeStripeModal');
+    const stripeMockForm = document.getElementById('stripeMockForm');
+    const stripeTotalAmount = document.getElementById('stripeTotalAmount');
+    const simulatePaymentBtn = document.getElementById('simulatePaymentBtn');
+    const stripeBtnText = document.getElementById('stripeBtnText');
+    const stripeSpinner = document.getElementById('stripeSpinner');
+    const stripeStatusMsg = document.getElementById('stripeStatusMsg');
+
     // Inicializar carrito desde localStorage
     try {
         if (localStorage.getItem('bakinGodsCart')) {
@@ -283,11 +292,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (checkoutBtn && orderModal && cartModal) {
+    if (checkoutBtn && cartModal) {
         checkoutBtn.addEventListener('click', () => {
             cartModal.style.display = 'none';
-            orderModal.style.display = 'block';
-            if (orderStatusMsg) orderStatusMsg.textContent = '';
+            if (mockStripeModal) {
+                mockStripeModal.style.display = 'block';
+                // Calculate mock total (assuming all prices are simple, for demo we just show a static or simple calculated total)
+                let total = cart.reduce((sum, item) => sum + (item.qty * 15), 0); // Assuming 15 PEN/USD per item for demo
+                if (stripeTotalAmount) stripeTotalAmount.textContent = 'S/ ' + total.toFixed(2);
+                if (stripeStatusMsg) {
+                    stripeStatusMsg.textContent = '';
+                    stripeStatusMsg.className = 'form-msg';
+                }
+            } else if (orderModal) {
+                orderModal.style.display = 'block';
+                if (orderStatusMsg) orderStatusMsg.textContent = '';
+            }
         });
     }
 
@@ -295,10 +315,52 @@ document.addEventListener('DOMContentLoaded', () => {
         closeOrderModal.addEventListener('click', () => orderModal.style.display = 'none');
     }
 
+    if (closeStripeModal && mockStripeModal) {
+        closeStripeModal.addEventListener('click', () => mockStripeModal.style.display = 'none');
+    }
+
     window.addEventListener('click', (e) => {
         if (e.target === cartModal) cartModal.style.display = 'none';
         if (e.target === orderModal) orderModal.style.display = 'none';
+        if (e.target === mockStripeModal) mockStripeModal.style.display = 'none';
     });
+
+    // --- Demo Mock Stripe Payment ---
+    if (stripeMockForm) {
+        stripeMockForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            simulatePaymentBtn.disabled = true;
+            stripeBtnText.style.display = 'none';
+            stripeSpinner.style.display = 'block';
+            
+            stripeStatusMsg.textContent = 'Conectando con el banco...';
+            stripeStatusMsg.className = 'form-msg';
+            
+            setTimeout(() => {
+                stripeStatusMsg.textContent = 'Procesando pago...';
+                
+                setTimeout(() => {
+                    simulatePaymentBtn.disabled = false;
+                    stripeBtnText.style.display = 'block';
+                    stripeSpinner.style.display = 'none';
+                    
+                    stripeStatusMsg.textContent = '✅ Pago Exitoso. Redirigiendo...';
+                    stripeStatusMsg.classList.add('msg-success');
+                    
+                    setTimeout(() => {
+                        mockStripeModal.style.display = 'none';
+                        showToast('Sistema: Webhook de Stripe recibido. Pedido marcado como PAGADO. Stock descontado definitivamente.', 'success');
+                        
+                        cart = [];
+                        saveCart();
+                        updateCartUI();
+                        // Realistically we would fetch stocks again if they were actually reduced on the DB
+                    }, 1500);
+                }, 1500);
+            }, 1000);
+        });
+    }
 
     // --- Enviar Pedido vía WhatsApp e integrar stock ---
     if (orderForm) {

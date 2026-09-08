@@ -30,3 +30,37 @@ Esta imagen presenta una paleta de colores cálida, suave y elegante con aires r
 - **Experiencia de Usuario en Móviles:** La web debe ser completamente adaptable a dispositivos móviles (teléfonos, tablets).
 - **Navegación:** El menú principal (Inicio, Catálogo, Nosotros, Contactos) NUNCA debe estar oculto en móvil. Se debe ajustar usando flexbox (apilado o en dos filas) para que el usuario siempre pueda navegar libremente.
 - **Legibilidad:** Asegurar tamaños de fuente amigables para pantallas pequeñas.
+
+---
+
+## Confirmación del pedido (Doble Confirmación Supabase-WhatsApp)
+
+**El Problema Actual:** 
+Cuando un cliente hace clic en "Enviar Pedido", el stock se resta automáticamente de Supabase y se abre WhatsApp. Si el cliente decide no enviar el mensaje de WhatsApp o no realiza el pago, el stock se pierde (queda descontado en la base de datos sin una venta real).
+
+**Solución Estratégica (Manejo de Estados de Pedido):**
+Para evitar que el stock se descuente erróneamente sin confirmación real, no debes descontar el stock definitivo de inmediato. Debes implementar un sistema de **"Reserva Temporal" o "Doble Confirmación"**.
+
+Existen dos enfoques recomendados para solucionar esto:
+
+### Opción 1: Descuento Manual por el Administrador (Recomendado para WhatsApp)
+1. **Validación:** Cuando el cliente presiona "Pedir", Supabase *solo verifica* si hay stock suficiente, pero **NO** lo resta.
+2. **Generación de Orden:** Se crea un registro en una tabla de Supabase llamada `pedidos` con estado `Pendiente`.
+3. **WhatsApp:** El cliente envía el mensaje.
+4. **Confirmación Real:** Una vez que tú (el jefe) confirmas el pago por WhatsApp, entras a un panel de administración (o ejecutas una función) que cambia el estado del pedido a `Confirmado` y es en ese momento donde **realmente se resta el stock** de la base de datos.
+
+### Opción 2: Reserva Temporal con Caducidad (Stock Reservado)
+1. **Reserva:** Cuando el cliente pide, la función en Supabase (RPC) no resta el `stock_disponible`, sino que suma esa cantidad a una columna llamada `stock_reservado`.
+2. **Stock Real:** El stock que ve la página web sería `stock_disponible - stock_reservado`.
+3. **Caducidad:** Si en 30 o 60 minutos el administrador no marca el pedido como "Pagado" en Supabase, un proceso automático (Cron Job de Supabase) cancela la orden y devuelve el `stock_reservado` a 0, liberando los postres nuevamente para otros clientes.
+### Opción 3: Automatización Total (Sin intervención manual)
+Si no quieres estar pendiente de cada venta ni confirmar manualmente los pedidos, la única forma de que el sistema sepa si la venta fue real (y reste el stock de forma segura) es conectar WhatsApp con Supabase mediante un **Bot y Webhooks**.
+
+1. **El cliente pide:** Se descuenta el stock como "Reservado" en Supabase.
+2. **WhatsApp Bot:** El mensaje llega a tu número y un Bot (usando la API oficial de WhatsApp, ManyChat, o herramientas similares) responde automáticamente pidiendo el pago o enviando un link de pago (MercadoPago, Stripe, etc.).
+3. **Confirmación Automática (Webhook):** Cuando la pasarela de pago confirma que el cliente pagó, envía una señal invisible (Webhook) directamente a Supabase.
+4. **Actualización en BD:** Supabase recibe esa señal, marca el pedido como "Pagado", y convierte el stock reservado en una venta final. Si el cliente no paga en 30 minutos, el sistema cancela la reserva automáticamente y el postre vuelve a estar disponible en la web.
+
+**Decisión a tomar:** 
+- Si buscas la ruta más rápida y barata ahora mismo: Sigue con la **Opción 1 o 2** (requiere un poco de revisión humana).
+- Si quieres que el negocio corra en piloto automático: Implementa la **Opción 3**, aunque requiere configurar herramientas externas (Bot de WhatsApp y pasarela de pagos) para que hablen con tu base de datos.
