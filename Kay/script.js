@@ -375,7 +375,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Enviar Pedido vía WhatsApp e integrar stock ---
+    // --- Enviar Pedido vía WhatsApp (Sistema de Orden Pendiente) ---
+    // El stock NO se descuenta aquí. Solo se crea un registro PENDIENTE en Supabase.
+    // El admin confirma el pago en admin.html y en ese momento sí se resta el stock.
     if (orderForm) {
         orderForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -386,50 +388,62 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!name || !phone || cart.length === 0) return;
 
             submitOrderBtn.disabled = true;
-            submitOrderBtn.textContent = 'Procesando stock...';
+            submitOrderBtn.textContent = 'Generando pedido...';
+            orderStatusMsg.textContent = '';
+            orderStatusMsg.className = 'form-msg';
 
-            // --- Actualización de stock en Supabase de forma segura ---
-            let productListStr = '';
+            // Preparar items con la estructura que espera el RPC
+            const orderItems = cart.map(item => ({
+                name: item.name,
+                qty: item.qty
+            }));
+
+            let orderCode = null;
 
             if (supabase) {
                 try {
-                    // Invoca la función almacenada segura (RPC) en el servidor
-                    const { data: res, error: rpcErr } = await supabase.rpc('process_order', { items: cart });
+                    // Llama a create_pending_order — NO resta stock, solo crea el pedido
+                    const { data: res, error: rpcErr } = await supabase.rpc('create_pending_order', {
+                        p_items:    orderItems,
+                        p_nombre:   name,
+                        p_telefono: phone
+                    });
 
                     if (rpcErr) throw rpcErr;
 
                     if (res && res.success === false) {
-                        showToast(res.message || 'Lo sentimos, no hay stock suficiente para completar el pedido.', 'error');
+                        showToast(res.message || 'No hay stock suficiente para completar el pedido.', 'error');
                         submitOrderBtn.disabled = false;
                         submitOrderBtn.textContent = 'Enviar Pedido';
-                        // Refrescar el stock en la pantalla con los datos actualizados
                         fetchAndRenderStocks();
                         return;
                     }
+
+                    // El código de orden viene del servidor (real, único, en BD)
+                    orderCode = res.order_code;
+
                 } catch (err) {
-                    console.error('Error al procesar el pedido en Supabase:', err);
-                    showToast('Hubo un problema al validar el stock en el servidor. Por favor intenta de nuevo.', 'error');
+                    console.error('Error al crear el pedido en Supabase:', err);
+                    showToast('Hubo un problema al registrar el pedido. Por favor intenta de nuevo.', 'error');
                     submitOrderBtn.disabled = false;
                     submitOrderBtn.textContent = 'Enviar Pedido';
                     return;
                 }
+            } else {
+                // Fallback si Supabase no está disponible (solo para desarrollo local)
+                orderCode = 'KAY-' + Math.floor(1000 + Math.random() * 9000);
             }
 
-            // Generar número de pedido aleatorio (ej. #4921)
-            const orderNumber = Math.floor(1000 + Math.random() * 9000);
+            // Mensaje blindado: el admin busca el código en su panel, no depende del texto del chat
+            const botMessage =
+                `Hola KAY 🍰, acabo de hacer mi pedido en la web.\n` +
+                `Mi código de orden es: *${orderCode}*\n\n` +
+                `Por favor, ¿a qué número puedo transferir el pago?`;
 
-            // Formatear lista de productos
-            cart.forEach(item => {
-                productListStr += `- ${item.qty}x ${item.name}\n`;
-            });
-
-            const botMessage = `NUEVO PEDIDO #${orderNumber}\nCliente: ${name}\nTelefono: ${phone}\n\nPRODUCTOS:\n${productListStr}`;
             const url = `https://wa.me/653425257?text=${encodeURIComponent(botMessage)}`;
-
-            // Abrir WhatsApp de forma oficial
             window.open(url, '_blank');
 
-            orderStatusMsg.innerHTML = '✅ Redirigiendo a WhatsApp...';
+            orderStatusMsg.innerHTML = `✅ Pedido <strong>${orderCode}</strong> registrado. Redirigiendo a WhatsApp...`;
             orderStatusMsg.className = 'form-msg msg-success';
             orderStatusMsg.style.color = '#25d366';
             orderStatusMsg.style.fontWeight = 'bold';
@@ -437,13 +451,12 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 submitOrderBtn.disabled = false;
                 submitOrderBtn.textContent = 'Enviar Pedido';
-                // Vaciar carrito tras enviar pedido
                 cart = [];
                 saveCart();
                 updateCartUI();
-                fetchAndRenderStocks(); // Refrescar los stocks en pantalla
+                fetchAndRenderStocks();
                 orderModal.style.display = 'none';
-            }, 2000);
+            }, 3000);
         });
     }
 

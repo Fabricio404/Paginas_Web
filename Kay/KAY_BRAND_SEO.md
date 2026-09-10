@@ -125,3 +125,113 @@ Ejecuta el script desde la terminal:
 python3 create_price.py
 ```
 Si todo es correcto, la consola te devolverá los identificadores de tu nuevo producto creado en Stripe.
+
+---
+
+## 🔐 Arquitectura de Seguridad Avanzada
+
+### Principio Fundamental: Ninguna contraseña o clave secreta en el código fuente
+
+Todo secreto real debe vivir en el servidor (Supabase), nunca en archivos `.js`, `.html` o `.json` del repositorio. El repositorio puede ser público sin comprometer la seguridad.
+
+---
+
+### Capa 1 — Clasificación de Claves
+
+| Clave | Tipo | ¿Se puede exponer en el JS del cliente? | Ubicación |
+|---|---|---|---|
+| `SUPABASE_URL` | Pública | ✅ Sí | `script.js`, `admin.js` |
+| `SUPABASE_ANON_KEY` | Pública (publishable) | ✅ Sí | `script.js`, `admin.js` |
+| `SUPABASE_SERVICE_ROLE_KEY` | **SECRETA** | ❌ NUNCA | Solo en servidores / Edge Functions |
+| Contraseña del admin | **SECRETA** | ❌ NUNCA | Solo en Supabase Auth (hasheada con bcrypt) |
+| Claves de Stripe | **SECRETA** | ❌ NUNCA | Solo en backend / Edge Functions |
+
+> **¿Por qué el ANON KEY es seguro en el cliente?**
+> Supabase diseñó el ANON KEY para ser público. Su poder está limitado exactamente por las políticas RLS que tú definas. Sin RLS correctamente configurado, el ANON KEY sería peligroso; **con RLS, es inofensivo**.
+
+---
+
+### Capa 2 — Row Level Security (RLS) en Supabase
+
+RLS es el mecanismo que controla qué operaciones puede hacer cada tipo de usuario sobre cada tabla, a nivel de base de datos (no de aplicación).
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     TABLA: pedidos                               │
+│                                                                  │
+│  Usuario anónimo (cliente de la web):                           │
+│    INSERT ✅ (solo puede crear nuevos pedidos via RPC)          │
+│    SELECT ❌ (no puede ver pedidos de otros)                    │
+│    UPDATE ❌ (no puede modificar nada)                          │
+│    DELETE ❌ (no puede borrar nada)                             │
+│                                                                  │
+│  Usuario autenticado (admin con login):                         │
+│    INSERT ✅  SELECT ✅  UPDATE ✅  DELETE ✅                   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Regla de oro:** Si RLS está activado y no existe una política que lo permita, la operación está bloqueada por defecto.
+
+---
+
+### Capa 3 — Funciones RPC con SECURITY DEFINER
+
+Las funciones en Supabase que operan sobre el stock usan `SECURITY DEFINER`, lo que significa que se ejecutan con los permisos del creador de la función (superuser), no del usuario que las llama. Esto permite:
+
+- Que un usuario anónimo pueda "crear un pedido" sin tener permiso de INSERT directo en la tabla.
+- Que la función verifique internamente `auth.uid()` antes de restar stock.
+- Que **ningún cliente pueda bypass-ar la lógica de validación** modificando la llamada desde el navegador.
+
+```
+Cliente → llama rpc('create_pending_order') → Supabase verifica stock → inserta pedido
+                                           ↕ (la función rechaza si no hay stock)
+
+Admin   → llama rpc('confirm_order')      → Supabase verifica auth.uid() → resta stock
+                                           ↕ (la función rechaza si no está autenticado)
+```
+
+---
+
+### Capa 4 — Supabase Auth (sin contraseñas en el código)
+
+El sistema de login del panel admin (`admin.html`) usa `supabase.auth.signInWithPassword()`. Lo que ocurre internamente:
+
+1. El navegador envía email + contraseña a los servidores de Supabase via HTTPS.
+2. Supabase compara la contraseña con el hash bcrypt almacenado en su base de datos interna.
+3. Si coincide, devuelve un **JWT token** firmado con expiración.
+4. Ese token se guarda en `localStorage` del navegador y se envía automáticamente en cada petición posterior.
+5. En el servidor, Supabase verifica la firma del JWT para autenticar al usuario.
+
+**Resultado:** La contraseña del admin nunca aparece en ningún archivo del proyecto. Ni en texto plano, ni cifrada, ni en variables de entorno del frontend.
+
+---
+
+### Capa 5 — Auditoría y Trazabilidad
+
+Cada acción del admin (confirmar, cancelar, editar) queda registrada en la tabla `audit_log` con:
+- `order_code`: El pedido afectado.
+- `accion`: El tipo de acción realizada.
+- `usuario`: El email del admin que la ejecutó (obtenido de `auth.email()` en el servidor).
+- `detalle`: JSON con el estado antes y después (útil para disputas).
+- `created_at`: Marca de tiempo exacta.
+
+Esto garantiza que, ante cualquier discrepancia de stock, siempre hay un historial completo de quién hizo qué y cuándo.
+
+---
+
+### Capa 6 — Protección XSS en el Panel Admin
+
+El archivo `admin.js` aplica sanitización a todos los datos que vienen de la base de datos antes de renderizarlos en el HTML, usando la función `escapeHTML()`. Esto previene ataques de Cross-Site Scripting en caso de que un cliente malintencionado introduzca código HTML/JS en su nombre o teléfono al hacer un pedido.
+
+---
+
+### Checklist de Seguridad
+
+- [ ] RLS activado en tablas `pedidos` y `audit_log`
+- [ ] Políticas RLS creadas para anon e autenticado
+- [ ] Funciones RPC con `SECURITY DEFINER` y verificación de `auth.uid()`
+- [ ] Contraseña del admin creada en Supabase Auth (Dashboard → Authentication → Users)
+- [ ] `SERVICE_ROLE_KEY` nunca mencionado en ningún archivo del repositorio
+- [ ] `admin.html` con meta `noindex, nofollow` para que no sea indexado por Google
+- [ ] Sesiones JWT expiran automáticamente (configurable en Supabase Auth Settings)
+

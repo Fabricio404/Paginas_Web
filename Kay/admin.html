@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KAY — Panel de Administración</title>
+    <!-- Sin indexación por motores de búsqueda -->
+    <meta name="robots" content="noindex, nofollow">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        /* ── Variables de Marca KAY ── */
+        :root {
+            --vino:      #72213B;
+            --magenta:   #B64888;
+            --petroleo:  #2E728B;
+            --verde:     #689AA3;
+            --terracota: #B76B2C;
+            --mostaza:   #D89135;
+
+            --bg:        #0f1117;
+            --bg2:       #1a1d27;
+            --bg3:       #22263a;
+            --border:    rgba(255,255,255,0.08);
+            --text:      #e8eaf0;
+            --text-muted:#8892a4;
+            --radius:    12px;
+            --shadow:    0 4px 24px rgba(0,0,0,0.4);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* ── Login Screen ── */
+        #loginScreen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f1117 0%, #1a1227 50%, #0f1117 100%);
+        }
+
+        .login-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 48px 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: var(--shadow), 0 0 60px rgba(114,33,59,0.15);
+        }
+
+        .login-logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .login-logo .brand {
+            font-size: 42px;
+            font-weight: 700;
+            color: var(--vino);
+            letter-spacing: 6px;
+        }
+
+        .login-logo .subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        .login-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(114,33,59,0.15);
+            border: 1px solid rgba(114,33,59,0.3);
+            color: #e8889a;
+            font-size: 11px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-bottom: 24px;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px 16px;
+            color: var(--text);
+            font-size: 15px;
+            font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: var(--vino);
+            box-shadow: 0 0 0 3px rgba(114,33,59,0.2);
+        }
+
+        .btn-primary {
+            width: 100%;
+            background: linear-gradient(135deg, var(--vino), var(--magenta));
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            padding: 15px;
+            font-size: 15px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary:hover { opacity: 0.9; }
+        .btn-primary:active { transform: scale(0.98); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .login-error {
+            background: rgba(183,59,59,0.15);
+            border: 1px solid rgba(183,59,59,0.3);
+            color: #f08080;
+            border-radius: var(--radius);
+            padding: 12px 16px;
+            font-size: 13px;
+            margin-top: 16px;
+            display: none;
+        }
+
+        /* ── Admin Panel ── */
+        #adminPanel { display: none; }
+
+        .admin-header {
+            background: var(--bg2);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-brand {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--vino);
+            letter-spacing: 4px;
+        }
+
+        .header-brand span {
+            font-size: 11px;
+            font-weight: 400;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+            margin-left: 8px;
+        }
+
+        .header-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-email {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .btn-logout {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: rgba(183,59,59,0.15);
+            border-color: rgba(183,59,59,0.3);
+            color: #f08080;
+        }
+
+        .admin-main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+
+        /* ── Stats Bar ── */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-card .stat-num {
+            font-size: 32px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .stat-card .stat-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 6px;
+        }
+
+        .stat-pendiente { color: var(--mostaza); }
+        .stat-confirmado { color: #4ade80; }
+        .stat-cancelado { color: #f87171; }
+        .stat-modificado { color: var(--verde); }
+
+        /* ── Filters ── */
+        .filters-bar {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+            align-items: center;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 13px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: var(--bg3);
+            color: var(--text);
+            border-color: rgba(255,255,255,0.2);
+        }
+
+        .filter-btn.active { font-weight: 600; }
+
+        .search-box {
+            margin-left: auto;
+        }
+
+        .search-box input {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 14px;
+            color: var(--text);
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+            width: 220px;
+            transition: border-color 0.2s;
+        }
+
+        .search-box input:focus { border-color: var(--vino); }
+
+        /* ── Orders Table ── */
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--text);
+        }
+
+        .orders-table-wrapper {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin-bottom: 40px;
+        }
+
+        .orders-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .orders-table th {
+            background: var(--bg3);
+            padding: 14px 16px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .orders-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        .orders-table tr:last-child td { border-bottom: none; }
+
+        .orders-table tr:hover td {
+            background: rgba(255,255,255,0.02);
+        }
+
+        .order-code {
+            font-family: 'Courier New', monospace;
+            font-weight: 700;
+            color: var(--mostaza);
+            font-size: 15px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-pendiente  { background: rgba(216,145,53,0.15);  color: var(--mostaza); border: 1px solid rgba(216,145,53,0.3); }
+        .badge-confirmado { background: rgba(74,222,128,0.12);  color: #4ade80;         border: 1px solid rgba(74,222,128,0.3); }
+        .badge-cancelado  { background: rgba(248,113,113,0.12); color: #f87171;         border: 1px solid rgba(248,113,113,0.3); }
+        .badge-modificado { background: rgba(104,154,163,0.15); color: var(--verde);    border: 1px solid rgba(104,154,163,0.3); }
+
+        .actions-cell {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            font-size: 12px;
+            font-family: inherit;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-confirm {
+            background: rgba(74,222,128,0.12);
+            border-color: rgba(74,222,128,0.3);
+            color: #4ade80;
+        }
+        .btn-confirm:hover { background: rgba(74,222,128,0.25); }
+
+        .btn-cancel {
+            background: rgba(248,113,113,0.12);
+            border-color: rgba(248,113,113,0.3);
+            color: #f87171;
+        }
+        .btn-cancel:hover { background: rgba(248,113,113,0.25); }
+
+        .btn-edit {
+            background: rgba(216,145,53,0.12);
+            border-color: rgba(216,145,53,0.3);
+            color: var(--mostaza);
+        }
+        .btn-edit:hover { background: rgba(216,145,53,0.25); }
+
+        .btn-detail {
+            background: rgba(255,255,255,0.05);
+            border-color: var(--border);
+            color: var(--text-muted);
+        }
+        .btn-detail:hover { color: var(--text); background: rgba(255,255,255,0.1); }
+
+        .btn-action:disabled { opacity: 0.35; cursor: not-allowed; }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+
+        /* ── Audit Log ── */
+        .audit-section { margin-top: 40px; }
+
+        .audit-list {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .audit-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+
+        .audit-item:last-child { border-bottom: none; }
+
+        .audit-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .audit-dot-confirmado { background: #4ade80; }
+        .audit-dot-cancelado  { background: #f87171; }
+        .audit-dot-modificado { background: var(--mostaza); }
+
+        .audit-code { color: var(--mostaza); font-weight: 600; font-family: monospace; }
+        .audit-time { color: var(--text-muted); margin-left: auto; font-size: 12px; white-space: nowrap; }
+
+        /* ── Modals ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.open { display: flex; }
+
+        .modal-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            width: 100%;
+            max-width: 520px;
+            box-shadow: var(--shadow);
+            animation: modalIn 0.2s ease;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: translateY(16px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .modal-info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        .modal-info-row:last-of-type { border-bottom: none; }
+        .modal-info-row .label { color: var(--text-muted); }
+
+        .product-edit-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            background: var(--bg3);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .qty-input {
+            width: 70px;
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 6px 10px;
+            color: var(--text);
+            font-size: 15px;
+            text-align: center;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .qty-input:focus { border-color: var(--vino); }
+
+        .notes-input {
+            width: 100%;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 10px 14px;
+            color: var(--text);
+            font-size: 14px;
+            font-family: inherit;
+            margin-top: 14px;
+            resize: vertical;
+            min-height: 80px;
+            outline: none;
+        }
+
+        .notes-input:focus { border-color: var(--vino); }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 24px;
+            justify-content: flex-end;
+        }
+
+        .btn-secondary {
+            padding: 10px 20px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover { background: var(--bg3); color: var(--text); }
+
+        /* ── Toast ── */
+        .admin-toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px 20px;
+            font-size: 14px;
+            box-shadow: var(--shadow);
+            z-index: 9999;
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            max-width: 360px;
+        }
+
+        .admin-toast.show { transform: translateY(0); opacity: 1; }
+        .admin-toast.toast-success { border-color: rgba(74,222,128,0.4); }
+        .admin-toast.toast-error   { border-color: rgba(248,113,113,0.4); }
+
+        /* ── Loading ── */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loading-row td {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            .admin-main { padding: 16px; }
+            .orders-table-wrapper { overflow-x: auto; }
+            .orders-table { min-width: 700px; }
+            .stats-bar { grid-template-columns: repeat(2, 1fr); }
+            .search-box { margin-left: 0; width: 100%; }
+            .search-box input { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- LOGIN SCREEN                                           -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div id="loginScreen">
+    <div class="login-card">
+        <div class="login-logo">
+            <div class="brand">KAY</div>
+            <div class="subtitle">Panel de Administración</div>
+        </div>
+        <div style="text-align:center; margin-bottom:28px;">
+            <span class="login-badge">🔐 Acceso Restringido</span>
+        </div>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="adminEmail">Correo electrónico</label>
+                <input type="email" id="adminEmail" placeholder="admin@kaypostres.com" required autocomplete="email">
+            </div>
+            <div class="form-group">
+                <label for="adminPassword">Contraseña</label>
+                <input type="password" id="adminPassword" placeholder="••••••••" required autocomplete="current-password">
+            </div>
+            <button type="submit" class="btn-primary" id="loginBtn">Iniciar sesión</button>
+        </form>
+        <div class="login-error" id="loginError"></div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- ADMIN PANEL                                            -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div id="adminPanel">
+    <header class="admin-header">
+        <div class="header-brand">KAY <span>ADMIN PANEL</span></div>
+        <div class="header-user">
+            <span class="user-email" id="adminUserEmail"></span>
+            <button class="btn-logout" id="logoutBtn">Cerrar sesión</button>
+        </div>
+    </header>
+
+    <main class="admin-main">
+
+        <!-- Stats -->
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="stat-num stat-pendiente" id="statPendiente">–</div>
+                <div class="stat-label">Pendientes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num stat-modificado" id="statModificado">–</div>
+                <div class="stat-label">Modificados</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num stat-confirmado" id="statConfirmado">–</div>
+                <div class="stat-label">Confirmados</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num stat-cancelado" id="statCancelado">–</div>
+                <div class="stat-label">Cancelados</div>
+            </div>
+        </div>
+
+        <!-- Filters + Search -->
+        <div class="filters-bar">
+            <button class="filter-btn active" data-filter="todos" id="filterTodos">Todos</button>
+            <button class="filter-btn" data-filter="pendiente">⏳ Pendiente</button>
+            <button class="filter-btn" data-filter="modificado">✏️ Modificado</button>
+            <button class="filter-btn" data-filter="confirmado">✅ Confirmado</button>
+            <button class="filter-btn" data-filter="cancelado">❌ Cancelado</button>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Buscar por #código o cliente...">
+            </div>
+        </div>
+
+        <!-- Orders Table -->
+        <div class="section-title">Pedidos</div>
+        <div class="orders-table-wrapper">
+            <table class="orders-table" id="ordersTable">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Cliente</th>
+                        <th>Teléfono</th>
+                        <th>Productos</th>
+                        <th>Total</th>
+                        <th>Fecha</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="ordersBody">
+                    <tr class="loading-row">
+                        <td colspan="8"><span class="spinner"></span> Cargando pedidos...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Audit Log -->
+        <div class="audit-section">
+            <div class="section-title">Historial de acciones</div>
+            <div class="audit-list" id="auditList">
+                <div class="audit-item" style="color:var(--text-muted);font-size:13px;">Cargando historial...</div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- MODAL: VER DETALLE                                     -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="detailModal">
+    <div class="modal-card">
+        <div class="modal-title">📋 Detalle del pedido <span id="detailCode" style="color:var(--mostaza);font-family:monospace;"></span></div>
+        <div id="detailContent"></div>
+        <div class="modal-actions">
+            <button class="btn-secondary" id="closeDetailModal">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- MODAL: EDITAR PEDIDO                                   -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="editModal">
+    <div class="modal-card">
+        <div class="modal-title">✏️ Editar pedido <span id="editCode" style="color:var(--mostaza);font-family:monospace;"></span></div>
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px;">
+            Ajusta las cantidades antes de confirmar. Si una cantidad queda en 0, el producto se eliminará del pedido.
+        </p>
+        <div id="editProductsContainer"></div>
+        <textarea class="notes-input" id="editNotes" placeholder="Notas internas (ej: cliente pidió cambio por WhatsApp)..."></textarea>
+        <div class="modal-actions">
+            <button class="btn-secondary" id="closeEditModal">Cancelar</button>
+            <button class="btn-primary" id="saveEditBtn" style="width:auto;padding:10px 24px;">Guardar cambios</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- MODAL: CANCELAR PEDIDO                                 -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="cancelModal">
+    <div class="modal-card">
+        <div class="modal-title">❌ Cancelar pedido <span id="cancelCode" style="color:#f87171;font-family:monospace;"></span></div>
+        <p style="font-size:14px;color:var(--text-muted);margin-bottom:16px;">
+            El pedido se marcará como cancelado. El stock no se restará (nunca se restó al ser pendiente). Esta acción queda registrada en el historial.
+        </p>
+        <div class="form-group" style="margin-bottom:0;">
+            <label for="cancelMotivo">Motivo (opcional)</label>
+            <input type="text" id="cancelMotivo" placeholder="Ej: Cliente no pagó, error en pedido...">
+        </div>
+        <div class="modal-actions">
+            <button class="btn-secondary" id="closeCancelModal">Volver</button>
+            <button class="btn-action btn-cancel" id="confirmCancelBtn" style="padding:10px 20px;">Confirmar cancelación</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="admin-toast" id="adminToast"></div>
+
+<script src="admin.js"></script>
+</body>
+</html>
