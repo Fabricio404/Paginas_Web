@@ -63,4 +63,65 @@ Si no quieres estar pendiente de cada venta ni confirmar manualmente los pedidos
 
 **Decisión a tomar:** 
 - Si buscas la ruta más rápida y barata ahora mismo: Sigue con la **Opción 1 o 2** (requiere un poco de revisión humana).
-- Si quieres que el negocio corra en piloto automático: Implementa la **Opción 3**, aunque requiere configurar herramientas externas (Bot de WhatsApp y pasarela de pagos) para que hablen con tu base de datos.
+- Si quieres que el negocio corra en piloto automático: Implementa la **Opción 3**, aunque requiere configurar herramientas externas (Bot de WhatsApp y pasarela de pagos) para que hablen con tu base de datos. 
+
+## Integración con stripe: 
+
+### Instalación y Configuración del SDK de Stripe para Python
+
+#### 1. Configurar un Entorno Virtual (Recomendado)
+Recomendamos administrar las dependencias mediante el módulo `venv` para mantener tu proyecto aislado.
+
+**En Windows:**
+```bash
+python3 -m venv env 
+.\env\Scripts\activate.bat
+```
+**En GNU/Linux o MacOS:**
+```bash
+python3 -m venv env 
+source env/bin/activate
+```
+
+#### 2. Instalar el SDK de Stripe
+El SDK del lado del servidor de Stripe para Python es compatible con Python 3.6+. Instala la biblioteca utilizando `pip`:
+
+```bash
+pip3 install --upgrade stripe
+```
+Si utilizas un archivo `requirements.txt`, especifica la versión así: `stripe>=15.6.0`
+
+#### 3. Ejecuta tu primera solicitud (Ejemplo Práctico)
+Crea un archivo llamado `create_price.py` para probar la conexión creando un producto de prueba.
+
+> **Importante:** Nunca incrustes claves secretas en código de producción. Utiliza variables de entorno.
+
+```python
+import stripe 
+
+# Configura tu clave secreta de prueba
+client = stripe.StripeClient("sk_test_tu_clave_secreta") 
+
+# Crear un producto en Stripe
+starter_subscription = client.v1.products.create(params={ 
+    "name": "Starter Subscription", 
+    "description": "$12/Month subscription", 
+}) 
+
+# Adjuntar un precio al producto (ej: $12.00 USD)
+starter_subscription_price = client.v1.prices.create(params={ 
+    "unit_amount": 1200, 
+    "currency": "usd", 
+    "recurring": {"interval": "month"}, 
+    "product": starter_subscription['id'], 
+}) 
+
+print(f"Éxito! Product ID: {starter_subscription.id}") 
+print(f"Éxito! Price ID: {starter_subscription_price.id}")
+```
+
+Ejecuta el script desde la terminal:
+```bash
+python3 create_price.py
+```
+Si todo es correcto, la consola te devolverá los identificadores de tu nuevo producto creado en Stripe.

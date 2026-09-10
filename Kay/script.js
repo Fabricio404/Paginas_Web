@@ -424,7 +424,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             const botMessage = `NUEVO PEDIDO #${orderNumber}\nCliente: ${name}\nTelefono: ${phone}\n\nPRODUCTOS:\n${productListStr}`;
-            const url = `https://wa.me/000000000?text=${encodeURIComponent(botMessage)}`;
+            const url = `https://wa.me/653425257?text=${encodeURIComponent(botMessage)}`;
 
             // Abrir WhatsApp de forma oficial
             window.open(url, '_blank');
@@ -468,7 +468,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 contactMsg.classList.add('msg-error');
             } else {
                 const botMessage = `NUEVO MENSAJE DE CONTACTO\nNombre: ${name}\nCorreo: ${email}\nMensaje: ${msg}`;
-                const url = `https://wa.me/000000000?text=${encodeURIComponent(botMessage)}`;
+                const url = `https://wa.me/653425257?text=${encodeURIComponent(botMessage)}`;
 
                 // Abrir WhatsApp
                 window.open(url, '_blank');
