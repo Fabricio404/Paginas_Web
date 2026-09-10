@@ -195,7 +195,7 @@ function renderOrders() {
             <td>${escapeHTML(o.cliente_nombre)}</td>
             <td>${escapeHTML(o.cliente_telefono)}</td>
             <td style="max-width:240px;font-size:12px;color:var(--text-muted);">${formatProducts(o.productos)}</td>
-            <td style="font-weight:600;color:var(--verde);">S/ ${Number(o.total || 0).toFixed(2)}</td>
+            <td style="font-weight:600;color:var(--verde);">€ ${Number(o.total || 0).toFixed(2)}</td>
             <td style="font-size:12px;color:var(--text-muted);">${formatDate(o.created_at)}</td>
             <td>${badgeHTML(o.estado)}</td>
             <td>
@@ -270,7 +270,7 @@ function openDetail(orderCode) {
         <div class="modal-info-row"><span class="label">Cliente</span>    <span>${escapeHTML(o.cliente_nombre)}</span></div>
         <div class="modal-info-row"><span class="label">Teléfono</span>   <span>${escapeHTML(o.cliente_telefono)}</span></div>
         <div class="modal-info-row"><span class="label">Estado</span>     ${badgeHTML(o.estado)}</div>
-        <div class="modal-info-row"><span class="label">Total</span>      <span style="color:var(--verde);font-weight:700;">S/ ${Number(o.total||0).toFixed(2)}</span></div>
+        <div class="modal-info-row"><span class="label">Total</span>      <span style="color:var(--verde);font-weight:700;">€ ${Number(o.total||0).toFixed(2)}</span></div>
         <div class="modal-info-row"><span class="label">Creado</span>     <span>${formatDate(o.created_at)}</span></div>
         ${o.confirmed_at ? `<div class="modal-info-row"><span class="label">Confirmado</span><span>${formatDate(o.confirmed_at)}</span></div>` : ''}
         ${o.notas ? `<div class="modal-info-row"><span class="label">Notas</span><span>${escapeHTML(o.notas)}</span></div>` : ''}
@@ -342,7 +342,7 @@ document.getElementById('saveEditBtn').addEventListener('click', async () => {
         return;
     }
 
-    showToast(`Pedido ${editingOrder.order_code} actualizado. Nuevo total: S/ ${Number(data.nuevo_total||0).toFixed(2)}`, 'success');
+    showToast(`Pedido ${editingOrder.order_code} actualizado. Nuevo total: € ${Number(data.nuevo_total||0).toFixed(2)}`, 'success');
     closeModal('editModal');
     editingOrder = null;
     loadOrders();
