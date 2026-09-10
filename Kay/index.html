@@ -208,48 +208,6 @@
         </div>
     </div>
 
-    <!-- Stripe Mock Modal -->
-    <div id="mockStripeModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="stripeModalTitle">
-        <div class="modal-content stripe-modal-content">
-            <button class="close-modal" id="closeStripeModal" aria-label="Cancelar pago">&times;</button>
-            <div class="stripe-header">
-                <h2 id="stripeModalTitle">Pasarela de Pago Segura</h2>
-                <p class="stripe-subtitle">Simulación de integración con Stripe</p>
-            </div>
-            
-            <div class="stripe-order-summary">
-                <p>Total a pagar:</p>
-                <h3 id="stripeTotalAmount">Calculando...</h3>
-            </div>
-
-            <form id="stripeMockForm" class="stripe-form">
-                <div class="stripe-input-group">
-                    <label>Correo Electrónico</label>
-                    <input type="email" placeholder="cliente@ejemplo.com" required class="stripe-input">
-                </div>
-                <div class="stripe-input-group">
-                    <label>Información de la Tarjeta</label>
-                    <div class="stripe-card-element">
-                        <input type="text" placeholder="0000 0000 0000 0000" maxlength="19" required class="stripe-input card-number">
-                        <div class="stripe-card-details">
-                            <input type="text" placeholder="MM / AA" maxlength="7" required class="stripe-input">
-                            <input type="text" placeholder="CVC" maxlength="3" required class="stripe-input">
-                        </div>
-                    </div>
-                </div>
-                <div class="stripe-input-group">
-                    <label>Nombre en la Tarjeta</label>
-                    <input type="text" placeholder="Tu nombre completo" required class="stripe-input">
-                </div>
-                
-                <button type="submit" class="stripe-btn" id="simulatePaymentBtn">
-                    <span id="stripeBtnText">Pagar (Demo)</span>
-                    <span id="stripeSpinner" class="stripe-spinner" style="display: none;"></span>
-                </button>
-            </form>
-            <p id="stripeStatusMsg" class="form-msg"></p>
-        </div>
-    </div>
 
     <!-- WhatsApp Floating Button -->
     <a href="https://api.whatsapp.com/send?phone=653425257&text=Hola%20estoy%20interesado%20en%20los%20postres%20KAY"
