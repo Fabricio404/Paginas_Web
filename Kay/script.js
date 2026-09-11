@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let supabase = null;
     let productStocks = {}; // Almacena { "Nombre del Producto": stock_disponible }
+    let productPrices = {}; // Almacena { "Nombre del Producto": precio }
 
     if (typeof window.supabase !== 'undefined') {
         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -87,15 +88,17 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const { data, error } = await supabase
                 .from('products')
-                .select('name, stock');
+                .select('name, stock, price');
 
             if (error) throw error;
 
             if (data) {
                 data.forEach(p => {
                     productStocks[p.name] = p.stock;
+                    productPrices[p.name] = p.price;
                 });
                 updateProductGridStocks();
+                updateProductGridPrices();
             }
         } catch (err) {
             console.error('Error al cargar stock desde Supabase:', err.message);
@@ -139,6 +142,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     btn.disabled = false;
                     btn.textContent = 'Pedir';
                 }
+            }
+        });
+    }
+
+    function updateProductGridPrices() {
+        document.querySelectorAll('.price').forEach(el => {
+            const productName = el.getAttribute('data-product');
+            const price = productPrices[productName];
+            if (price !== undefined) {
+                el.textContent = `€ ${Number(price).toFixed(2)}`;
             }
         });
     }
@@ -203,18 +216,29 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!cartItemsContainer) return;
 
         cartItemsContainer.innerHTML = '';
+        const cartTotalContainer = document.getElementById('cartTotalContainer');
+        const cartTotalEl = document.getElementById('cartTotal');
+        let totalAmount = 0;
 
         if (cart.length === 0) {
             cartItemsContainer.innerHTML = '<p class="empty-cart-msg">Tu cesta está vacía.</p>';
             if (checkoutBtn) checkoutBtn.disabled = true;
             if (clearCartBtn) clearCartBtn.style.display = 'none';
+            if (cartTotalContainer) cartTotalContainer.style.display = 'none';
         } else {
             cart.forEach((item, index) => {
+                const price = productPrices[item.name] || 0;
+                const itemTotal = price * item.qty;
+                totalAmount += itemTotal;
+
                 const itemEl = document.createElement('div');
                 itemEl.className = 'cart-item';
 
                 itemEl.innerHTML = `
-                    <div class="cart-item-title">${item.name}</div>
+                    <div class="cart-item-info">
+                        <div class="cart-item-title">${item.name}</div>
+                        <div class="cart-item-price" style="font-size: 0.9rem; color: var(--color-primary); font-weight: bold;">€ ${Number(price).toFixed(2)} c/u</div>
+                    </div>
                     <div class="qty-controls">
                         <button class="qty-btn minus" data-index="${index}">-</button>
                         <span style="font-weight: bold; width: 25px; text-align: center; display: inline-block;">${item.qty}</span>
@@ -224,6 +248,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
                 cartItemsContainer.appendChild(itemEl);
             });
+            
+            if (cartTotalEl) cartTotalEl.textContent = `€ ${Number(totalAmount).toFixed(2)}`;
+            if (cartTotalContainer) cartTotalContainer.style.display = 'block';
             if (checkoutBtn) checkoutBtn.disabled = false;
             if (clearCartBtn) clearCartBtn.style.display = 'block';
 
