@@ -11,16 +11,16 @@
  */
 
 // ── Configuración de Supabase (igual que script.js — son claves públicas) ──
-const SUPABASE_URL      = 'https://tzsbxnlygxuzjmxafvez.supabase.co';
+const SUPABASE_URL = 'https://tzsbxnlygxuzjmxafvez.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_vr1hMYlWgzT2lkpfLzT3cg_zOqTNeQb';
 
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ── Estado de la App ──
-let allOrders   = [];
+let allOrders = [];
 let currentFilter = 'todos';
 let currentSearch = '';
-let editingOrder  = null;   // Pedido actualmente en edición
+let editingOrder = null;   // Pedido actualmente en edición
 let cancelingCode = null;   // Código del pedido a cancelar
 
 // ── Helpers de UI ──
@@ -36,7 +36,7 @@ function formatDate(iso) {
     if (!iso) return '—';
     const d = new Date(iso);
     return d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' })
-         + ' ' + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        + ' ' + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 }
 
 function formatProducts(productos) {
@@ -50,11 +50,11 @@ function badgeHTML(estado) {
 }
 
 // ── Modales ──
-function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
 document.getElementById('closeDetailModal').addEventListener('click', () => closeModal('detailModal'));
-document.getElementById('closeEditModal').addEventListener('click',   () => closeModal('editModal'));
+document.getElementById('closeEditModal').addEventListener('click', () => closeModal('editModal'));
 document.getElementById('closeCancelModal').addEventListener('click', () => closeModal('cancelModal'));
 
 // Cerrar modal al hacer clic fuera
@@ -69,24 +69,24 @@ document.getElementById('closeCancelModal').addEventListener('click', () => clos
 // ══════════════════════════════════════════════════════════
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email    = document.getElementById('adminEmail').value.trim();
+    const email = document.getElementById('adminEmail').value.trim();
     const password = document.getElementById('adminPassword').value;
-    const btn      = document.getElementById('loginBtn');
-    const errDiv   = document.getElementById('loginError');
+    const btn = document.getElementById('loginBtn');
+    const errDiv = document.getElementById('loginError');
 
-    btn.disabled    = true;
-    btn.innerHTML   = '<span class="spinner"></span> Verificando...';
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Verificando...';
     errDiv.style.display = 'none';
 
     const { data, error } = await sb.auth.signInWithPassword({ email, password });
 
     if (error) {
-        errDiv.textContent   = '❌ ' + (error.message === 'Invalid login credentials'
+        errDiv.textContent = '❌ ' + (error.message === 'Invalid login credentials'
             ? 'Correo o contraseña incorrectos.'
             : error.message);
         errDiv.style.display = 'block';
-        btn.disabled         = false;
-        btn.textContent      = 'Iniciar sesión';
+        btn.disabled = false;
+        btn.textContent = 'Iniciar sesión';
         return;
     }
 
@@ -96,12 +96,12 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
 
 document.getElementById('logoutBtn').addEventListener('click', async () => {
     await sb.auth.signOut();
-    document.getElementById('adminPanel').style.display  = 'none';
+    document.getElementById('adminPanel').style.display = 'none';
     document.getElementById('loginScreen').style.display = 'flex';
-    document.getElementById('adminEmail').value    = '';
+    document.getElementById('adminEmail').value = '';
     document.getElementById('adminPassword').value = '';
     document.getElementById('loginBtn').textContent = 'Iniciar sesión';
-    document.getElementById('loginBtn').disabled    = false;
+    document.getElementById('loginBtn').disabled = false;
     allOrders = [];
 });
 
@@ -114,7 +114,7 @@ sb.auth.getSession().then(({ data: { session } }) => {
 
 function showAdminPanel(email) {
     document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('adminPanel').style.display  = 'block';
+    document.getElementById('adminPanel').style.display = 'block';
     document.getElementById('adminUserEmail').textContent = email;
     loadOrders();
     loadAuditLog();
@@ -134,8 +134,9 @@ function showAdminPanel(email) {
 async function loadOrders() {
     const { data, error } = await sb
         .from('pedidos')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('id, order_code, cliente_nombre, cliente_telefono, productos, total, estado, created_at, confirmed_at, notas')
+        .order('created_at', { ascending: false })
+        .limit(100);
 
     if (error) {
         console.error('Error al cargar pedidos:', error);
@@ -150,10 +151,10 @@ async function loadOrders() {
 
 function updateStats() {
     const count = (estado) => allOrders.filter(o => o.estado === estado).length;
-    document.getElementById('statPendiente').textContent  = count('pendiente');
+    document.getElementById('statPendiente').textContent = count('pendiente');
     document.getElementById('statModificado').textContent = count('modificado');
     document.getElementById('statConfirmado').textContent = count('confirmado');
-    document.getElementById('statCancelado').textContent  = count('cancelado');
+    document.getElementById('statCancelado').textContent = count('cancelado');
 }
 
 function renderOrders() {
@@ -187,8 +188,8 @@ function renderOrders() {
     }
 
     body.innerHTML = filtered.map(o => {
-        const isActive   = o.estado === 'pendiente' || o.estado === 'modificado';
-        const isPending  = o.estado !== 'confirmado' && o.estado !== 'cancelado';
+        const isActive = o.estado === 'pendiente' || o.estado === 'modificado';
+        const isPending = o.estado !== 'confirmado' && o.estado !== 'cancelado';
         return `
         <tr data-id="${o.id}">
             <td><span class="order-code">${o.order_code}</span></td>
@@ -232,14 +233,14 @@ document.getElementById('searchInput').addEventListener('input', (e) => {
 async function confirmOrder(orderCode, btnEl) {
     if (!confirm(`¿Confirmar el pago del pedido ${orderCode}?\n\nEsto restará el stock definitivamente de la base de datos.`)) return;
 
-    btnEl.disabled   = true;
-    btnEl.innerHTML  = '<span class="spinner"></span>';
+    btnEl.disabled = true;
+    btnEl.innerHTML = '<span class="spinner"></span>';
 
     const { data, error } = await sb.rpc('confirm_order', { p_order_code: orderCode });
 
     if (error || (data && data.success === false)) {
         showToast((data && data.message) || error?.message || 'Error al confirmar.', 'error');
-        btnEl.disabled  = false;
+        btnEl.disabled = false;
         btnEl.innerHTML = '✅ Confirmar';
         return;
     }
@@ -270,7 +271,7 @@ function openDetail(orderCode) {
         <div class="modal-info-row"><span class="label">Cliente</span>    <span>${escapeHTML(o.cliente_nombre)}</span></div>
         <div class="modal-info-row"><span class="label">Teléfono</span>   <span>${escapeHTML(o.cliente_telefono)}</span></div>
         <div class="modal-info-row"><span class="label">Estado</span>     ${badgeHTML(o.estado)}</div>
-        <div class="modal-info-row"><span class="label">Total</span>      <span style="color:var(--verde);font-weight:700;">€ ${Number(o.total||0).toFixed(2)}</span></div>
+        <div class="modal-info-row"><span class="label">Total</span>      <span style="color:var(--verde);font-weight:700;">€ ${Number(o.total || 0).toFixed(2)}</span></div>
         <div class="modal-info-row"><span class="label">Creado</span>     <span>${formatDate(o.created_at)}</span></div>
         ${o.confirmed_at ? `<div class="modal-info-row"><span class="label">Confirmado</span><span>${formatDate(o.confirmed_at)}</span></div>` : ''}
         ${o.notas ? `<div class="modal-info-row"><span class="label">Notas</span><span>${escapeHTML(o.notas)}</span></div>` : ''}
@@ -289,7 +290,7 @@ function openEdit(orderCode) {
     if (!editingOrder) return;
 
     document.getElementById('editCode').textContent = orderCode;
-    document.getElementById('editNotes').value      = editingOrder.notas || '';
+    document.getElementById('editNotes').value = editingOrder.notas || '';
 
     const container = document.getElementById('editProductsContainer');
     container.innerHTML = Array.isArray(editingOrder.productos)
@@ -323,18 +324,18 @@ document.getElementById('saveEditBtn').addEventListener('click', async () => {
         return;
     }
 
-    const notas  = document.getElementById('editNotes').value.trim();
+    const notas = document.getElementById('editNotes').value.trim();
     const saveBtn = document.getElementById('saveEditBtn');
-    saveBtn.disabled   = true;
-    saveBtn.innerHTML  = '<span class="spinner"></span> Guardando...';
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<span class="spinner"></span> Guardando...';
 
     const { data, error } = await sb.rpc('edit_order', {
         p_order_code: editingOrder.order_code,
-        p_new_items:  newItems,
-        p_notas:      notas
+        p_new_items: newItems,
+        p_notas: notas
     });
 
-    saveBtn.disabled  = false;
+    saveBtn.disabled = false;
     saveBtn.textContent = 'Guardar cambios';
 
     if (error || (data && data.success === false)) {
@@ -342,7 +343,7 @@ document.getElementById('saveEditBtn').addEventListener('click', async () => {
         return;
     }
 
-    showToast(`Pedido ${editingOrder.order_code} actualizado. Nuevo total: € ${Number(data.nuevo_total||0).toFixed(2)}`, 'success');
+    showToast(`Pedido ${editingOrder.order_code} actualizado. Nuevo total: € ${Number(data.nuevo_total || 0).toFixed(2)}`, 'success');
     closeModal('editModal');
     editingOrder = null;
     loadOrders();
@@ -355,24 +356,24 @@ document.getElementById('saveEditBtn').addEventListener('click', async () => {
 function openCancel(orderCode) {
     cancelingCode = orderCode;
     document.getElementById('cancelCode').textContent = orderCode;
-    document.getElementById('cancelMotivo').value     = '';
+    document.getElementById('cancelMotivo').value = '';
     openModal('cancelModal');
 }
 
 document.getElementById('confirmCancelBtn').addEventListener('click', async () => {
     if (!cancelingCode) return;
 
-    const motivo  = document.getElementById('cancelMotivo').value.trim();
+    const motivo = document.getElementById('cancelMotivo').value.trim();
     const cancelBtn = document.getElementById('confirmCancelBtn');
-    cancelBtn.disabled  = true;
+    cancelBtn.disabled = true;
     cancelBtn.innerHTML = '<span class="spinner"></span> Cancelando...';
 
     const { data, error } = await sb.rpc('cancel_order', {
         p_order_code: cancelingCode,
-        p_motivo:     motivo
+        p_motivo: motivo
     });
 
-    cancelBtn.disabled    = false;
+    cancelBtn.disabled = false;
     cancelBtn.textContent = 'Confirmar cancelación';
 
     if (error || (data && data.success === false)) {
@@ -393,7 +394,7 @@ document.getElementById('confirmCancelBtn').addEventListener('click', async () =
 async function loadAuditLog() {
     const { data, error } = await sb
         .from('audit_log')
-        .select('*')
+        .select('id, order_code, accion, usuario, created_at')
         .order('created_at', { ascending: false })
         .limit(30);
 

@@ -24,6 +24,8 @@ CREATE TABLE IF NOT EXISTS pedidos (
     confirmed_by     uuid REFERENCES auth.users(id)
 );
 
+CREATE INDEX IF NOT EXISTS idx_pedidos_estado_created ON pedidos(estado, created_at);
+
 CREATE TABLE IF NOT EXISTS audit_log (
     id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     pedido_id   uuid REFERENCES pedidos(id) ON DELETE CASCADE,
@@ -133,11 +135,11 @@ BEGIN
     IF NOT FOUND THEN RETURN jsonb_build_object('success', false, 'message', 'Pedido no encontrado'); END IF;
     IF v_pedido.estado = 'confirmado' THEN RETURN jsonb_build_object('success', false, 'message', 'No se puede cancelar un pedido confirmado'); END IF;
 
-    -- Devolver los productos al stock
-    FOR v_item IN SELECT * FROM jsonb_array_elements(v_pedido.productos)
-    LOOP
-        UPDATE products SET stock = stock + (v_item->>'qty')::int WHERE name = (v_item->>'name');
-    END LOOP;
+    -- Devolver los productos al stock masivamente (evita N+1)
+    UPDATE products p
+    SET stock = p.stock + (i.value->>'qty')::int
+    FROM jsonb_array_elements(v_pedido.productos) AS i(value)
+    WHERE p.name = i.value->>'name';
 
     UPDATE pedidos SET estado = 'cancelado', notas = p_motivo WHERE order_code = p_order_code;
     INSERT INTO audit_log (pedido_id, order_code, accion, usuario, detalle) VALUES (v_pedido.id, p_order_code, 'cancelado', auth.email(), jsonb_build_object('motivo', p_motivo));
@@ -204,22 +206,21 @@ CREATE EXTENSION IF NOT EXISTS pg_cron;
 
 CREATE OR REPLACE FUNCTION auto_cancel_expired_orders()
 RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
-DECLARE
-    v_pedido record;
-    v_item jsonb;
 BEGIN
-    FOR v_pedido IN 
-        SELECT * FROM pedidos 
-        WHERE estado = 'pendiente' 
-        AND created_at < NOW() - INTERVAL '30 minutes'
-    LOOP
-        FOR v_item IN SELECT * FROM jsonb_array_elements(v_pedido.productos)
-        LOOP
-            UPDATE products SET stock = stock + (v_item->>'qty')::int WHERE name = (v_item->>'name');
-        END LOOP;
-        
-        UPDATE pedidos SET estado = 'cancelado', notas = 'Cancelado automáticamente por caducidad (30 mins)' WHERE id = v_pedido.id;
-    END LOOP;
+    -- 1. Devolver el stock masivamente de todos los pedidos caducados
+    UPDATE products p
+    SET stock = p.stock + (i.value->>'qty')::int
+    FROM pedidos ped, jsonb_array_elements(ped.productos) AS i(value)
+    WHERE ped.estado = 'pendiente'
+      AND ped.created_at < NOW() - INTERVAL '30 minutes'
+      AND p.name = i.value->>'name';
+
+    -- 2. Marcar como cancelados todos esos pedidos masivamente
+    UPDATE pedidos
+    SET estado = 'cancelado',
+        notas = 'Cancelado automáticamente por caducidad (30 mins)'
+    WHERE estado = 'pendiente'
+      AND created_at < NOW() - INTERVAL '30 minutes';
 END;
 $$;
 
