@@ -456,11 +456,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const slideshowTrack = document.getElementById('slideshowTrack');
     if (slideshowTrack) {
         const images = [
-            { src: 'edited_1.png', title: 'Tarta de Fresa' },
-            { src: 'edited_2.png', title: 'Dulce de Leche' },
-            { src: 'edited_3.png', title: 'Postre de Limón' },
-            { src: 'edited_4.png', title: 'Decoración Especial' },
-            { src: 'edited_5.png', title: 'Postre Tradicional' }
+            { src: 'assets/images/edited_1.png', title: 'Tarta de Fresa' },
+            { src: 'assets/images/edited_2.png', title: 'Dulce de Leche' },
+            { src: 'assets/images/edited_3.png', title: 'Postre de Limón' },
+            { src: 'assets/images/edited_4.png', title: 'Decoración Especial' },
+            { src: 'assets/images/edited_5.png', title: 'Postre Tradicional' }
         ];
 
         const loopImages = [...images, ...images];
