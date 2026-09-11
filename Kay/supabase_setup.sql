@@ -135,11 +135,15 @@ BEGIN
     IF NOT FOUND THEN RETURN jsonb_build_object('success', false, 'message', 'Pedido no encontrado'); END IF;
     IF v_pedido.estado = 'confirmado' THEN RETURN jsonb_build_object('success', false, 'message', 'No se puede cancelar un pedido confirmado'); END IF;
 
-    -- Devolver los productos al stock masivamente (evita N+1)
+    -- Devolver los productos al stock masivamente (agrupando por si hay duplicados)
     UPDATE products p
-    SET stock = p.stock + (i.value->>'qty')::int
-    FROM jsonb_array_elements(v_pedido.productos) AS i(value)
-    WHERE p.name = i.value->>'name';
+    SET stock = p.stock + agg.total_qty
+    FROM (
+        SELECT i.value->>'name' AS name, SUM((i.value->>'qty')::int) AS total_qty
+        FROM jsonb_array_elements(v_pedido.productos) AS i(value)
+        GROUP BY i.value->>'name'
+    ) agg
+    WHERE p.name = agg.name;
 
     UPDATE pedidos SET estado = 'cancelado', notas = p_motivo WHERE order_code = p_order_code;
     INSERT INTO audit_log (pedido_id, order_code, accion, usuario, detalle) VALUES (v_pedido.id, p_order_code, 'cancelado', auth.email(), jsonb_build_object('motivo', p_motivo));
@@ -207,13 +211,17 @@ CREATE EXTENSION IF NOT EXISTS pg_cron;
 CREATE OR REPLACE FUNCTION auto_cancel_expired_orders()
 RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
-    -- 1. Devolver el stock masivamente de todos los pedidos caducados
+    -- 1. Devolver el stock masivamente agrupando las cantidades totales por producto
     UPDATE products p
-    SET stock = p.stock + (i.value->>'qty')::int
-    FROM pedidos ped, jsonb_array_elements(ped.productos) AS i(value)
-    WHERE ped.estado = 'pendiente'
-      AND ped.created_at < NOW() - INTERVAL '30 minutes'
-      AND p.name = i.value->>'name';
+    SET stock = p.stock + agg.total_qty
+    FROM (
+        SELECT i.value->>'name' AS name, SUM((i.value->>'qty')::int) AS total_qty
+        FROM pedidos ped, jsonb_array_elements(ped.productos) AS i(value)
+        WHERE ped.estado = 'pendiente'
+          AND ped.created_at < NOW() - INTERVAL '30 minutes'
+        GROUP BY i.value->>'name'
+    ) agg
+    WHERE p.name = agg.name;
 
     -- 2. Marcar como cancelados todos esos pedidos masivamente
     UPDATE pedidos
